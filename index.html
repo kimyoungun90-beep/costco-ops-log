@@ -372,11 +372,11 @@
 
     .cal-event {
       display: block;
-      width: 100%;
+      width: calc(100% + 16px);
       border: 0;
-      border-radius: 8px;
+      border-radius: 0;
       padding: 4px 6px;
-      margin-bottom: 4px;
+      margin: 0 -8px 4px -8px;
       color: #fff;
       font-size: 12px;
       line-height: 1.25;
@@ -386,6 +386,41 @@
       white-space: nowrap;
       cursor: pointer;
       font-weight: 850;
+      min-height: 22px;
+    }
+
+    .cal-event.span-single {
+      width: 100%;
+      margin-left: 0;
+      margin-right: 0;
+      border-radius: 8px;
+    }
+
+    .cal-event.span-start {
+      width: calc(100% + 8px);
+      margin-left: 0;
+      margin-right: -8px;
+      border-radius: 8px 0 0 8px;
+    }
+
+    .cal-event.span-middle {
+      color: transparent;
+    }
+
+    .cal-event.span-end {
+      width: calc(100% + 8px);
+      margin-left: -8px;
+      margin-right: 0;
+      border-radius: 0 8px 8px 0;
+      color: transparent;
+    }
+
+    .cal-event.span-start.span-end {
+      width: 100%;
+      margin-left: 0;
+      margin-right: 0;
+      border-radius: 8px;
+      color: #fff;
     }
 
     .cal-samsung { background: #2563eb; }
@@ -436,7 +471,7 @@
     <div class="topbar">
       <div>
         <h1>코스트코 가전 연간 계획 관리</h1>
-        <p class="desc">행사 / 모델 변경 / 기타 이력을 공용 DB에 저장합니다. 코스트코 아이템번호를 입력하면 등록된 DB 기준으로 브랜드와 모델명이 자동 입력됩니다.</p>
+        <p class="desc">IRC / 모델 변경 / 행사 및 기타 이력을 공용 DB에 저장합니다. 코스트코 아이템번호를 입력하면 등록된 DB 기준으로 브랜드와 모델명이 자동 입력됩니다.</p>
       </div>
       <div class="top-actions">
         <button class="btn-light" id="refreshBtn" type="button">새로고침</button>
@@ -456,9 +491,9 @@
         </div>
 
         <div class="tabs">
-          <button class="tab active" type="button" data-type="event">행사</button>
+          <button class="tab active" type="button" data-type="event">IRC</button>
           <button class="tab" type="button" data-type="model_change">모델 변경</button>
-          <button class="tab" type="button" data-type="etc">기타</button>
+          <button class="tab" type="button" data-type="etc">행사 및 기타</button>
         </div>
 
         <form id="entryForm" novalidate>
@@ -491,30 +526,30 @@
 
           <div id="eventFields">
             <div class="field">
-              <label for="eventName">행사 일정</label>
-              <input type="text" id="eventName" placeholder="예: 6월 에어컨 IRC / 브랜드위크 / TV 행사" />
+              <label for="eventName">IRC 일정</label>
+              <input type="text" id="eventName" placeholder="예: 6월 에어컨 IRC / TV IRC / 브랜드별 IRC" />
             </div>
             <div class="field">
-              <label for="eventModel">행사 모델</label>
+              <label for="eventModel">IRC 모델</label>
               <input type="text" id="eventModel" placeholder="예: AF60F19D11WN / KQ75QF7SAFXKR" />
             </div>
             <div class="two-col">
               <div class="field">
-                <label for="eventStart">행사 시작일</label>
+                <label for="eventStart">IRC 시작일</label>
                 <input type="date" id="eventStart" />
               </div>
               <div class="field">
-                <label for="eventEnd">행사 종료일</label>
+                <label for="eventEnd">IRC 종료일</label>
                 <input type="date" id="eventEnd" />
               </div>
             </div>
             <div class="two-col">
               <div class="field">
-                <label for="beforePrice">행사 전 가격</label>
+                <label for="beforePrice">IRC 전 가격</label>
                 <input type="text" inputmode="numeric" id="beforePrice" placeholder="예: 2990000" />
               </div>
               <div class="field">
-                <label for="finalPrice">행사 최종가</label>
+                <label for="finalPrice">IRC 최종가</label>
                 <input type="text" inputmode="numeric" id="finalPrice" placeholder="예: 2590000" />
               </div>
             </div>
@@ -558,6 +593,7 @@
                 <label for="etcCategory">기타 구분</label>
                 <select id="etcCategory">
                   <option value="">선택</option>
+                  <option value="행사">행사</option>
                   <option value="인력변동">인력변동</option>
                   <option value="점포오픈">점포오픈</option>
                   <option value="점포폐점">점포폐점</option>
@@ -680,18 +716,18 @@
         <div class="toolbar">
           <div class="summary-row">
             <div class="summary-box"><strong id="totalCount">0</strong><span>전체 등록</span></div>
-            <div class="summary-box"><strong id="eventCount">0</strong><span>행사</span></div>
+            <div class="summary-box"><strong id="eventCount">0</strong><span>IRC</span></div>
             <div class="summary-box"><strong id="changeCount">0</strong><span>모델 변경</span></div>
-            <div class="summary-box"><strong id="etcCount">0</strong><span>기타</span></div>
+            <div class="summary-box"><strong id="etcCount">0</strong><span>행사 및 기타</span></div>
             <div class="summary-box"><strong id="viewCount">0</strong><span>현재 조회</span></div>
           </div>
 
           <div class="filters">
             <select id="filterType">
               <option value="all">전체 구분</option>
-              <option value="event">행사</option>
+              <option value="event">IRC</option>
               <option value="model_change">모델 변경</option>
-              <option value="etc">기타</option>
+              <option value="etc">행사 및 기타</option>
             </select>
             <select id="filterBrand">
               <option value="all">전체 브랜드</option>
@@ -970,9 +1006,9 @@
       els.etcFields.classList.toggle("hidden", type !== "etc");
 
       const titleMap = {
-        event: "행사 등록",
+        event: "IRC 등록",
         model_change: "모델 변경 등록",
-        etc: "기타 등록"
+        etc: "행사 및 기타 등록"
       };
       els.formTitle.textContent = titleMap[type] || "등록";
     }
@@ -1099,7 +1135,7 @@
         payload.final_price = toNumberOrNull(fields.finalPrice.value);
 
         if (!payload.event_name && !payload.event_model) {
-          showToast("행사 일정 또는 행사 모델을 입력해주세요.");
+          showToast("IRC 일정 또는 IRC 모델을 입력해주세요.");
           return;
         }
       }
@@ -1128,7 +1164,7 @@
         payload.etc_price = toNumberOrNull(fields.etcPrice.value);
 
         if (!payload.etc_title && !payload.etc_category && !payload.related_store && !payload.related_target && !payload.related_model && !payload.note) {
-          showToast("기타 제목, 구분, 점포, 대상 또는 상세 내용을 입력해주세요.");
+          showToast("행사 및 기타 제목, 구분, 점포, 대상 또는 상세 내용을 입력해주세요.");
           return;
         }
       }
@@ -1330,9 +1366,9 @@
       els.saveBtn.textContent = "수정 저장";
 
       const titleMap = {
-        event: "행사 수정",
+        event: "IRC 수정",
         model_change: "모델 변경 수정",
-        etc: "기타 수정"
+        etc: "행사 및 기타 수정"
       };
       els.formTitle.textContent = titleMap[item.type] || "수정";
 
@@ -1543,11 +1579,12 @@
         `;
 
         dayEvents.forEach(item => {
+          const segment = getCalendarSegment(item, dateStr, date);
           const btn = document.createElement("button");
           btn.type = "button";
-          btn.className = `cal-event ${brandColorClass(item.brand)}`;
+          btn.className = `cal-event ${brandColorClass(item.brand)} ${segment.className}`;
           btn.title = calendarEventText(item, false);
-          btn.textContent = calendarEventText(item, true);
+          btn.textContent = segment.showText ? calendarEventText(item, true) : "";
           btn.addEventListener("click", () => editEntry(item.id));
           cell.appendChild(btn);
         });
@@ -1556,14 +1593,38 @@
       }
     }
 
+    function getCalendarSegment(item, dateStr, dateObj) {
+      const range = getItemDateRange(item);
+      const isStart = dateStr === range.start;
+      const isEnd = dateStr === range.end;
+      const isWeekStart = dateObj.getDay() === 0;
+      const isWeekEnd = dateObj.getDay() === 6;
+
+      const segmentStart = isStart || isWeekStart;
+      const segmentEnd = isEnd || isWeekEnd;
+
+      let className = "span-middle";
+      if (segmentStart && segmentEnd) className = "span-single";
+      else if (segmentStart) className = "span-start";
+      else if (segmentEnd) className = "span-end";
+
+      return {
+        className,
+        showText: segmentStart
+      };
+    }
+
     function getEventsForDate(dateStr) {
-      return entries.filter(item => {
-        const range = getItemDateRange(item);
-        return range.start && range.end && dateStr >= range.start && dateStr <= range.end;
-      }).sort((a, b) => {
-        const order = { event: 1, model_change: 2, etc: 3 };
-        return (order[a.type] || 9) - (order[b.type] || 9);
-      });
+      return entries
+        .filter(item => item.type !== "event")
+        .filter(item => {
+          const range = getItemDateRange(item);
+          return range.start && range.end && dateStr >= range.start && dateStr <= range.end;
+        })
+        .sort((a, b) => {
+          const order = { model_change: 1, etc: 2 };
+          return (order[a.type] || 9) - (order[b.type] || 9);
+        });
     }
 
     function getItemDateRange(item) {
@@ -1616,9 +1677,9 @@
     }
 
     function typeLabel(type) {
-      if (type === "event") return "행사";
+      if (type === "event") return "IRC";
       if (type === "model_change") return "모델변경";
-      if (type === "etc") return "기타";
+      if (type === "etc") return "행사기타";
       return "기록";
     }
 
@@ -1654,9 +1715,9 @@
     }
 
     function typeBadge(type) {
-      if (type === "event") return `<span class="badge event">행사</span>`;
+      if (type === "event") return `<span class="badge event">IRC</span>`;
       if (type === "model_change") return `<span class="badge model_change">모델 변경</span>`;
-      return `<span class="badge etc">기타</span>`;
+      return `<span class="badge etc">행사 및 기타</span>`;
     }
 
     function statusBadge(item) {
