@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>코스트코 운영 기록 사이트</title>
+  <title>코스트코 가전 연간 계획 관리</title>
   <style>
     :root {
       --bg: #f3f5f8;
@@ -371,11 +372,11 @@
 
     .cal-event {
       display: block;
-      width: calc(100% + 16px);
+      width: 100%;
       border: 0;
-      border-radius: 0;
+      border-radius: 8px;
       padding: 4px 6px;
-      margin: 0 -8px 4px -8px;
+      margin-bottom: 4px;
       color: #fff;
       font-size: 12px;
       line-height: 1.25;
@@ -385,41 +386,6 @@
       white-space: nowrap;
       cursor: pointer;
       font-weight: 850;
-      min-height: 22px;
-    }
-
-    .cal-event.span-single {
-      width: 100%;
-      margin-left: 0;
-      margin-right: 0;
-      border-radius: 8px;
-    }
-
-    .cal-event.span-start {
-      width: calc(100% + 8px);
-      margin-left: 0;
-      margin-right: -8px;
-      border-radius: 8px 0 0 8px;
-    }
-
-    .cal-event.span-middle {
-      color: transparent;
-    }
-
-    .cal-event.span-end {
-      width: calc(100% + 8px);
-      margin-left: -8px;
-      margin-right: 0;
-      border-radius: 0 8px 8px 0;
-      color: transparent;
-    }
-
-    .cal-event.span-start.span-end {
-      width: 100%;
-      margin-left: 0;
-      margin-right: 0;
-      border-radius: 8px;
-      color: #fff;
     }
 
     .cal-samsung { background: #2563eb; }
@@ -469,8 +435,8 @@
   <div class="app">
     <div class="topbar">
       <div>
-        <h1>코스트코 운영 기록 사이트</h1>
-        <p class="desc">행사 / 모델 변경 / 기타 운영 이력을 공용 DB에 저장합니다. 코스트코 아이템번호를 입력하면 등록된 DB 기준으로 브랜드와 모델명이 자동 입력됩니다.</p>
+        <h1>코스트코 가전 연간 계획 관리</h1>
+        <p class="desc">행사 / 모델 변경 / 기타 이력을 공용 DB에 저장합니다. 코스트코 아이템번호를 입력하면 등록된 DB 기준으로 브랜드와 모델명이 자동 입력됩니다.</p>
       </div>
       <div class="top-actions">
         <button class="btn-light" id="refreshBtn" type="button">새로고침</button>
@@ -817,6 +783,11 @@
     const SUPABASE_KEY = "sb_publishable_X5wZWJufMbu8K3zo2lwjBA_xcBf_SSK";
     const TABLE_NAME = "ce_plan_items";
     const PRODUCT_TABLE = "product_items";
+
+    // 구글시트 양방향 연동용 Apps Script 웹앱 URL
+    // Apps Script 배포 후 생성된 /exec 주소를 넣으세요.
+    const SHEET_BRIDGE_URL = "여기에_APPS_SCRIPT_WEB_APP_URL";
+    const SHEET_BRIDGE_SECRET = "costco-ops-log";
 
     const isConfigured = !SUPABASE_URL.includes("여기에_") && !SUPABASE_KEY.includes("여기에_");
     const supabase = isConfigured ? createClient(SUPABASE_URL, SUPABASE_KEY) : null;
@@ -1181,6 +1152,7 @@
         return;
       }
 
+      if (result.data) await sendToSheetBridge("upsertLog", result.data);
       await upsertProductItem(payload);
       showToast(editId ? "수정되었습니다." : "저장되었습니다.");
       resetMainForm();
@@ -1193,13 +1165,17 @@
       const modelName = getModelNameFromPayload(payload);
       if (!modelName) return;
 
-      const { error } = await supabase.from(PRODUCT_TABLE).upsert({
+      const productPayload = {
         item_no: payload.product_item_no,
         brand: payload.brand,
         brand_detail: payload.brand_detail,
         model_name: modelName,
         updated_at: new Date().toISOString()
-      }, { onConflict: "item_no" });
+      };
+
+      const { error } = await supabase.from(PRODUCT_TABLE).upsert(productPayload, { onConflict: "item_no" });
+
+      if (!error) await sendToSheetBridge("upsertProduct", productPayload);
 
       if (error) {
         console.error(error);
@@ -1230,14 +1206,18 @@
         return;
       }
 
-      const { error } = await supabase.from(PRODUCT_TABLE).upsert({
+      const productPayload = {
         item_no: itemNo,
         brand,
         brand_detail: brand === "기타" ? brandDetail : null,
         model_name: modelName,
         note: productFields.note.value.trim() || null,
         updated_at: new Date().toISOString()
-      }, { onConflict: "item_no" });
+      };
+
+      const { error } = await supabase.from(PRODUCT_TABLE).upsert(productPayload, { onConflict: "item_no" });
+
+      if (!error) await sendToSheetBridge("upsertProduct", productPayload);
 
       if (error) {
         console.error(error);
@@ -1317,6 +1297,7 @@
         return;
       }
 
+      await sendToSheetBridge("deleteProduct", { item_no: itemNo });
       showToast("아이템번호 DB에서 삭제되었습니다.");
       await loadProductDbList();
     }
@@ -1399,6 +1380,7 @@
         return;
       }
 
+      await sendToSheetBridge("deleteLog", { id });
       showToast("삭제되었습니다.");
       await fetchEntries();
     }
@@ -1561,39 +1543,17 @@
         `;
 
         dayEvents.forEach(item => {
-          const segment = getCalendarSegment(item, dateStr, date);
           const btn = document.createElement("button");
           btn.type = "button";
-          btn.className = `cal-event ${brandColorClass(item.brand)} ${segment.className}`;
+          btn.className = `cal-event ${brandColorClass(item.brand)}`;
           btn.title = calendarEventText(item, false);
-          btn.textContent = segment.showText ? calendarEventText(item, true) : "";
+          btn.textContent = calendarEventText(item, true);
           btn.addEventListener("click", () => editEntry(item.id));
           cell.appendChild(btn);
         });
 
         els.calendarGrid.appendChild(cell);
       }
-    }
-
-    function getCalendarSegment(item, dateStr, dateObj) {
-      const range = getItemDateRange(item);
-      const isStart = dateStr === range.start;
-      const isEnd = dateStr === range.end;
-      const isWeekStart = dateObj.getDay() === 0;
-      const isWeekEnd = dateObj.getDay() === 6;
-
-      const segmentStart = isStart || isWeekStart;
-      const segmentEnd = isEnd || isWeekEnd;
-
-      let className = "span-middle";
-      if (segmentStart && segmentEnd) className = "span-single";
-      else if (segmentStart) className = "span-start";
-      else if (segmentEnd) className = "span-end";
-
-      return {
-        className,
-        showText: segmentStart
-      };
     }
 
     function getEventsForDate(dateStr) {
@@ -1804,6 +1764,25 @@
       els.toast.classList.add("show");
       clearTimeout(showToast.timer);
       showToast.timer = setTimeout(() => els.toast.classList.remove("show"), 2400);
+    }
+
+
+    async function sendToSheetBridge(action, data) {
+      if (!SHEET_BRIDGE_URL || SHEET_BRIDGE_URL.includes("여기에_")) return;
+
+      try {
+        await fetch(SHEET_BRIDGE_URL, {
+          method: "POST",
+          mode: "no-cors",
+          body: JSON.stringify({
+            secret: SHEET_BRIDGE_SECRET,
+            action,
+            data
+          })
+        });
+      } catch (err) {
+        console.error("Sheet bridge error", err);
+      }
     }
 
     window.editEntry = editEntry;
