@@ -35,7 +35,7 @@
     }
 
     .app {
-      max-width: 1480px;
+      max-width: 1540px;
       margin: 0 auto;
       padding: 26px;
     }
@@ -48,9 +48,10 @@
       margin-bottom: 18px;
     }
 
-    h1, h2, p { margin-top: 0; }
+    h1, h2, h3, p { margin-top: 0; }
     h1 { font-size: 30px; letter-spacing: -0.04em; margin-bottom: 8px; }
     h2 { font-size: 20px; letter-spacing: -0.03em; margin-bottom: 0; }
+    h3 { font-size: 16px; letter-spacing: -0.03em; margin-bottom: 0; }
     .desc { color: var(--muted); font-size: 14px; margin-bottom: 0; }
 
     button, input, select, textarea { font: inherit; }
@@ -94,12 +95,22 @@
       align-self: start;
     }
 
-    .card-header {
+    .card-header, .mini-title {
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 10px;
       margin-bottom: 16px;
+    }
+
+    .mini-title {
+      margin-bottom: 12px;
+    }
+
+    .mini-title span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
     }
 
     .tabs {
@@ -139,32 +150,17 @@
 
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .form-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+    .item-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
 
-$1
-    .product-db-box {
-      margin-top: 18px;
-      padding-top: 16px;
-      border-top: 1px solid var(--line);
-    }
-
-    .mini-title {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    .mini-title h3 {
-      margin: 0;
-      font-size: 16px;
-      letter-spacing: -0.03em;
-    }
-
-    .mini-title span {
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 800;
+    .notice {
+      margin-top: 12px;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.45;
+      background: #eff6ff;
+      color: #1e40af;
+      font-weight: 700;
     }
 
     .setup-warning {
@@ -176,6 +172,38 @@ $1
       color: #9a3412;
       font-weight: 800;
       line-height: 1.5;
+    }
+
+    .product-db-box {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .product-db-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .db-result {
+      margin-top: 12px;
+      max-height: 260px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #f8fafc;
+    }
+
+    .db-result table {
+      min-width: 520px;
+      font-size: 12px;
+    }
+
+    .db-result th, .db-result td {
+      padding: 9px 8px;
+      font-size: 12px;
     }
 
     .list-card { overflow: hidden; }
@@ -248,7 +276,7 @@ $1
     @media (max-width: 640px) {
       .app { padding: 16px; }
       .topbar { flex-direction: column; align-items: stretch; }
-      .two-col, .form-actions, .filters, .summary-row { grid-template-columns: 1fr; }
+      .two-col, .form-actions, .filters, .summary-row, .product-db-actions, .item-row { grid-template-columns: 1fr; }
       h1 { font-size: 24px; }
       .tabs { grid-template-columns: 1fr; }
     }
@@ -259,10 +287,10 @@ $1
     <div class="topbar">
       <div>
         <h1>코스트코 가전 연간 계획 관리</h1>
-        <p class="desc">행사 / 모델 변경 / 기타 이력을 공용 DB에 저장합니다. 코스트코 아이템번호를 입력하면 등록된 DB 기준으로 모델명이 자동 입력됩니다.</p>
+        <p class="desc">행사 / 모델 변경 / 기타 이력을 공용 DB에 저장합니다. 코스트코 아이템번호를 입력하면 등록된 DB 기준으로 브랜드와 모델명이 자동 입력됩니다.</p>
       </div>
       <div>
-        <button class="btn-light" id="refreshBtn">새로고침</button>
+        <button class="btn-light" id="refreshBtn" type="button">새로고침</button>
       </div>
     </div>
 
@@ -274,7 +302,7 @@ $1
       <section class="card form-card">
         <div class="card-header">
           <h2 id="formTitle">행사 등록</h2>
-          <button class="btn-ghost" id="newBtn">신규 입력</button>
+          <button class="btn-ghost" id="newBtn" type="button">신규 입력</button>
         </div>
 
         <div class="tabs">
@@ -283,14 +311,14 @@ $1
           <button class="tab" type="button" data-type="etc">기타</button>
         </div>
 
-        <form id="entryForm">
+        <form id="entryForm" novalidate>
           <input type="hidden" id="editId" />
           <input type="hidden" id="entryType" value="event" />
 
           <div class="two-col">
             <div class="field">
               <label for="brand">브랜드</label>
-              <select id="brand" required>
+              <select id="brand">
                 <option value="">선택</option>
                 <option value="삼성">삼성</option>
                 <option value="LG">LG</option>
@@ -305,7 +333,10 @@ $1
 
           <div class="field">
             <label for="productItemNo">코스트코 아이템번호</label>
-            <input type="text" id="productItemNo" placeholder="예: 1234567 입력 시 모델명 자동 조회" />
+            <div class="item-row">
+              <input type="text" id="productItemNo" placeholder="예: 1748392" />
+              <button class="btn-light" type="button" id="lookupItemBtn">모델 조회</button>
+            </div>
           </div>
 
           <div id="eventFields">
@@ -393,22 +424,24 @@ $1
             <button type="button" class="btn-light" id="resetBtn">초기화</button>
           </div>
 
-$1
+          <div class="notice">저장하면 공용 DB에 바로 반영됩니다. 저장된 항목은 목록의 수정 버튼으로 다시 불러와 수정할 수 있습니다.</div>
+        </form>
 
         <div class="product-db-box">
           <div class="mini-title">
             <h3>아이템번호 DB 등록</h3>
             <span>미리 등록용</span>
           </div>
-          <form id="productDbForm">
+
+          <form id="productDbForm" novalidate>
             <div class="field">
               <label for="dbItemNo">코스트코 아이템번호</label>
-              <input type="text" id="dbItemNo" placeholder="예: 1748392" required />
+              <input type="text" id="dbItemNo" placeholder="예: 1748392" />
             </div>
             <div class="two-col">
               <div class="field">
                 <label for="dbBrand">브랜드</label>
-                <select id="dbBrand" required>
+                <select id="dbBrand">
                   <option value="">선택</option>
                   <option value="삼성">삼성</option>
                   <option value="LG">LG</option>
@@ -422,7 +455,7 @@ $1
             </div>
             <div class="field">
               <label for="dbModelName">모델명</label>
-              <input type="text" id="dbModelName" placeholder="예: KQ75QF7SAFXKR" required />
+              <input type="text" id="dbModelName" placeholder="예: KQ75QF7SAFXKR" />
             </div>
             <div class="field">
               <label for="dbNote">DB 비고</label>
@@ -430,7 +463,27 @@ $1
             </div>
             <button type="submit" class="btn-light" style="width:100%;">아이템번호 DB 저장</button>
           </form>
-          <div class="notice">여기에 미리 등록하면 위 입력창에서 아이템번호만 입력해도 모델명이 자동으로 불러와집니다.</div>
+
+          <div class="product-db-actions">
+            <button type="button" class="btn-light" id="loadProductDbBtn">DB조회</button>
+            <button type="button" class="btn-light" id="openSupabaseBtn">Supabase에서 열기</button>
+          </div>
+
+          <div class="db-result hidden" id="productDbResult">
+            <table>
+              <thead>
+                <tr>
+                  <th>아이템번호</th>
+                  <th>브랜드</th>
+                  <th>모델명</th>
+                  <th>관리</th>
+                </tr>
+              </thead>
+              <tbody id="productDbList"></tbody>
+            </table>
+          </div>
+
+          <div class="notice">DB는 초기화 버튼으로 지워지지 않습니다. 삭제가 필요하면 DB조회 후 항목별 삭제 버튼을 누르세요.</div>
         </div>
       </section>
 
@@ -476,7 +529,7 @@ $1
               <option value="12">12월</option>
             </select>
             <input type="text" id="searchInput" placeholder="코스트코 아이템번호 / 모델명 / 제목 / 비고 검색" />
-            <button class="btn-light" id="clearFilterBtn">필터 초기화</button>
+            <button class="btn-light" id="clearFilterBtn" type="button">필터 초기화</button>
           </div>
         </div>
 
@@ -511,20 +564,17 @@ $1
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-    /*
-      1) Supabase 프로젝트 생성
-      2) SQL Editor에 아래 안내 SQL 실행
-      3) Project URL / anon 또는 publishable key를 아래에 입력
-    */
-    const SUPABASE_URL = "sb_publishable_X5wZWJufMbu8K3zo2lwjBA_xcBf_SSK";
-    const SUPABASE_KEY = "https://lmkprhvbpanzchskfggy.supabase.co";
+    const SUPABASE_URL = "여기에_SUPABASE_PROJECT_URL";
+    const SUPABASE_KEY = "여기에_SUPABASE_ANON_OR_PUBLISHABLE_KEY";
     const TABLE_NAME = "ce_plan_items";
+    const PRODUCT_TABLE = "product_items";
 
     const isConfigured = !SUPABASE_URL.includes("여기에_") && !SUPABASE_KEY.includes("여기에_");
     const supabase = isConfigured ? createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
     let entries = [];
     let currentType = "event";
+    let lookupTimer = null;
 
     const $ = (id) => document.getElementById(id);
     const els = {
@@ -541,6 +591,11 @@ $1
       resetBtn: $("resetBtn"),
       newBtn: $("newBtn"),
       refreshBtn: $("refreshBtn"),
+      lookupItemBtn: $("lookupItemBtn"),
+      loadProductDbBtn: $("loadProductDbBtn"),
+      openSupabaseBtn: $("openSupabaseBtn"),
+      productDbResult: $("productDbResult"),
+      productDbList: $("productDbList"),
       entryList: $("entryList"),
       emptyState: $("emptyState"),
       filterType: $("filterType"),
@@ -575,7 +630,8 @@ $1
       etcTitle: $("etcTitle"),
       relatedModel: $("relatedModel"),
       etcPrice: $("etcPrice"),
-$1
+      note: $("note")
+    };
 
     const productFields = {
       itemNo: $("dbItemNo"),
@@ -589,7 +645,6 @@ $1
 
     async function init() {
       bindEvents();
-      
 
       if (!isConfigured) {
         els.setupWarning.classList.remove("hidden");
@@ -609,14 +664,21 @@ $1
 
       els.form.addEventListener("submit", handleSubmit);
       els.productDbForm.addEventListener("submit", handleProductDbSubmit);
-      els.resetBtn.addEventListener("click", resetForm);
-      els.newBtn.addEventListener("click", resetForm);
+      els.resetBtn.addEventListener("click", resetMainForm);
+      els.newBtn.addEventListener("click", resetMainForm);
       els.refreshBtn.addEventListener("click", fetchEntries);
+      els.lookupItemBtn.addEventListener("click", () => lookupProductItem(true));
+      els.loadProductDbBtn.addEventListener("click", loadProductDbList);
+      els.openSupabaseBtn.addEventListener("click", openSupabaseTable);
 
       fields.brand.addEventListener("change", handleBrandChange);
       productFields.brand.addEventListener("change", handleProductDbBrandChange);
-      fields.productItemNo.addEventListener("change", lookupProductItem);
-      fields.productItemNo.addEventListener("blur", lookupProductItem);
+
+      fields.productItemNo.addEventListener("input", () => {
+        clearTimeout(lookupTimer);
+        lookupTimer = setTimeout(() => lookupProductItem(false), 500);
+      });
+      fields.productItemNo.addEventListener("blur", () => lookupProductItem(false));
 
       [fields.beforePrice, fields.finalPrice, fields.salePrice, fields.etcPrice].forEach(input => {
         input.addEventListener("input", () => input.value = onlyNumber(input.value));
@@ -637,60 +699,18 @@ $1
       });
     }
 
-$1
+    function handleBrandChange() {
+      const isEtc = fields.brand.value === "기타";
+      fields.brandDetail.disabled = !isEtc;
+      if (!isEtc) fields.brandDetail.value = "";
+      if (isEtc) fields.brandDetail.focus();
+    }
+
     function handleProductDbBrandChange() {
       const isEtc = productFields.brand.value === "기타";
       productFields.brandDetail.disabled = !isEtc;
       if (!isEtc) productFields.brandDetail.value = "";
       if (isEtc) productFields.brandDetail.focus();
-    }
-
-    async function handleProductDbSubmit(e) {
-      e.preventDefault();
-
-      if (!supabase) {
-        showToast("Supabase 연결 정보가 없습니다.");
-        return;
-      }
-
-      const itemNo = productFields.itemNo.value.trim();
-      const brand = productFields.brand.value;
-      const brandDetail = productFields.brandDetail.value.trim();
-      const modelName = productFields.modelName.value.trim();
-
-      if (!itemNo || !brand || !modelName) {
-        showToast("아이템번호, 브랜드, 모델명은 필수입니다.");
-        return;
-      }
-
-      if (brand === "기타" && !brandDetail) {
-        showToast("기타 브랜드명을 입력해주세요.");
-        return;
-      }
-
-      const { error } = await supabase.from("product_items").upsert({
-        item_no: itemNo,
-        brand,
-        brand_detail: brand === "기타" ? brandDetail : null,
-        model_name: modelName,
-        note: productFields.note.value.trim() || null,
-        updated_at: new Date().toISOString()
-      }, { onConflict: "item_no" });
-
-      if (error) {
-        console.error(error);
-        showToast("아이템번호 DB 저장 오류: product_items 테이블을 확인해주세요.");
-        return;
-      }
-
-      productFields.itemNo.value = "";
-      productFields.brand.value = "";
-      productFields.brandDetail.value = "";
-      productFields.brandDetail.disabled = true;
-      productFields.modelName.value = "";
-      productFields.note.value = "";
-
-      showToast("아이템번호 DB에 저장되었습니다.");
     }
 
     function setType(type) {
@@ -733,6 +753,41 @@ $1
       render();
     }
 
+    async function lookupProductItem(showNotFound) {
+      if (!supabase) return;
+      const itemNo = fields.productItemNo.value.trim();
+      if (!itemNo) return;
+
+      const { data, error } = await supabase
+        .from(PRODUCT_TABLE)
+        .select("item_no, model_name, brand, brand_detail")
+        .eq("item_no", itemNo)
+        .maybeSingle();
+
+      if (error) {
+        console.error(error);
+        showToast("아이템번호 조회 오류: product_items 테이블을 확인해주세요.");
+        return;
+      }
+
+      if (!data) {
+        if (showNotFound) showToast("등록되지 않은 아이템번호입니다. 아래 DB 등록칸에 먼저 저장해주세요.");
+        return;
+      }
+
+      if (data.brand) {
+        fields.brand.value = data.brand;
+        fields.brandDetail.value = data.brand_detail || "";
+        handleBrandChange();
+      }
+
+      if (currentType === "event") fields.eventModel.value = data.model_name || fields.eventModel.value;
+      if (currentType === "model_change") fields.afterModel.value = data.model_name || fields.afterModel.value;
+      if (currentType === "etc") fields.relatedModel.value = data.model_name || fields.relatedModel.value;
+
+      showToast("아이템번호 DB에서 브랜드/모델명을 불러왔습니다.");
+    }
+
     async function handleSubmit(e) {
       e.preventDefault();
 
@@ -745,13 +800,13 @@ $1
       const editId = els.editId.value;
       const brand = fields.brand.value;
       const brandDetail = fields.brandDetail.value.trim();
+      const productItemNo = fields.productItemNo.value.trim();
+      const baseDate = getBaseDateByType(type);
+
       if (!brand) {
         showToast("브랜드는 필수입니다.");
         return;
       }
-
-      const productItemNo = fields.productItemNo.value.trim();
-      const baseDate = getBaseDateByType(type);
 
       if (brand === "기타" && !brandDetail) {
         showToast("기타 브랜드명을 입력해주세요.");
@@ -844,8 +899,161 @@ $1
 
       await upsertProductItem(payload);
       showToast(editId ? "수정되었습니다." : "저장되었습니다.");
-      resetForm(false);
+      resetMainForm();
       await fetchEntries();
+    }
+
+    async function upsertProductItem(payload) {
+      if (!supabase || !payload.product_item_no) return;
+
+      const modelName = getModelNameFromPayload(payload);
+      if (!modelName) return;
+
+      const { error } = await supabase.from(PRODUCT_TABLE).upsert({
+        item_no: payload.product_item_no,
+        brand: payload.brand,
+        brand_detail: payload.brand_detail,
+        model_name: modelName,
+        updated_at: new Date().toISOString()
+      }, { onConflict: "item_no" });
+
+      if (error) {
+        console.error(error);
+        showToast("저장은 완료됐지만 아이템번호 DB 등록은 실패했습니다.");
+      }
+    }
+
+    async function handleProductDbSubmit(e) {
+      e.preventDefault();
+
+      if (!supabase) {
+        showToast("Supabase 연결 정보가 없습니다.");
+        return;
+      }
+
+      const itemNo = productFields.itemNo.value.trim();
+      const brand = productFields.brand.value;
+      const brandDetail = productFields.brandDetail.value.trim();
+      const modelName = productFields.modelName.value.trim();
+
+      if (!itemNo || !brand || !modelName) {
+        showToast("아이템번호, 브랜드, 모델명은 필수입니다.");
+        return;
+      }
+
+      if (brand === "기타" && !brandDetail) {
+        showToast("기타 브랜드명을 입력해주세요.");
+        return;
+      }
+
+      const { error } = await supabase.from(PRODUCT_TABLE).upsert({
+        item_no: itemNo,
+        brand,
+        brand_detail: brand === "기타" ? brandDetail : null,
+        model_name: modelName,
+        note: productFields.note.value.trim() || null,
+        updated_at: new Date().toISOString()
+      }, { onConflict: "item_no" });
+
+      if (error) {
+        console.error(error);
+        showToast("아이템번호 DB 저장 오류: product_items 테이블을 확인해주세요.");
+        return;
+      }
+
+      clearProductDbForm();
+      showToast("아이템번호 DB에 저장되었습니다.");
+      await loadProductDbList();
+    }
+
+    async function loadProductDbList() {
+      if (!supabase) {
+        showToast("Supabase 연결 정보가 없습니다.");
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from(PRODUCT_TABLE)
+        .select("item_no, brand, brand_detail, model_name, note, updated_at")
+        .order("updated_at", { ascending: false })
+        .limit(200);
+
+      if (error) {
+        console.error(error);
+        showToast("DB조회 오류: product_items 테이블을 확인해주세요.");
+        return;
+      }
+
+      renderProductDbList(data || []);
+      els.productDbResult.classList.remove("hidden");
+      showToast("아이템번호 DB를 조회했습니다.");
+    }
+
+    function renderProductDbList(list) {
+      els.productDbList.innerHTML = "";
+
+      if (!list.length) {
+        els.productDbList.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#667085;">등록된 아이템번호 DB가 없습니다.</td></tr>`;
+        return;
+      }
+
+      list.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${escapeHtml(item.item_no)}</strong></td>
+          <td>${escapeHtml(item.brand === "기타" && item.brand_detail ? `기타(${item.brand_detail})` : item.brand || "-")}</td>
+          <td>${escapeHtml(item.model_name || "-")}</td>
+          <td>
+            <button type="button" class="btn-ghost" onclick="window.fillProductDbForm('${escapeJs(item.item_no)}','${escapeJs(item.brand || "")}','${escapeJs(item.brand_detail || "")}','${escapeJs(item.model_name || "")}','${escapeJs(item.note || "")}')">수정</button>
+            <button type="button" class="btn-ghost" style="color:#dc2626" onclick="window.deleteProductDbItem('${escapeJs(item.item_no)}')">삭제</button>
+          </td>
+        `;
+        els.productDbList.appendChild(tr);
+      });
+    }
+
+    function fillProductDbForm(itemNo, brand, brandDetail, modelName, note) {
+      productFields.itemNo.value = itemNo;
+      productFields.brand.value = brand;
+      productFields.brandDetail.value = brandDetail;
+      productFields.modelName.value = modelName;
+      productFields.note.value = note;
+      handleProductDbBrandChange();
+      showToast("DB 항목을 수정칸으로 불러왔습니다.");
+    }
+
+    async function deleteProductDbItem(itemNo) {
+      if (!supabase) return;
+      if (!confirm(`${itemNo} 아이템번호 DB를 삭제하시겠습니까?`)) return;
+
+      const { error } = await supabase.from(PRODUCT_TABLE).delete().eq("item_no", itemNo);
+      if (error) {
+        console.error(error);
+        showToast("아이템번호 DB 삭제 오류입니다.");
+        return;
+      }
+
+      showToast("아이템번호 DB에서 삭제되었습니다.");
+      await loadProductDbList();
+    }
+
+    function clearProductDbForm() {
+      productFields.itemNo.value = "";
+      productFields.brand.value = "";
+      productFields.brandDetail.value = "";
+      productFields.brandDetail.disabled = true;
+      productFields.modelName.value = "";
+      productFields.note.value = "";
+    }
+
+    function openSupabaseTable() {
+      if (!isConfigured) {
+        showToast("Supabase URL이 설정되지 않았습니다.");
+        return;
+      }
+
+      const ref = SUPABASE_URL.replace("https://", "").split(".")[0];
+      window.open(`https://supabase.com/dashboard/project/${ref}/editor`, "_blank");
     }
 
     function editEntry(id) {
@@ -892,7 +1100,7 @@ $1
     async function deleteEntry(id) {
       const item = entries.find(x => x.id === id);
       if (!item) return;
-      if (!confirm(`${item.item_no} 항목을 삭제하시겠습니까?`)) return;
+      if (!confirm(`${item.product_item_no || item.item_no || "선택 항목"} 항목을 삭제하시겠습니까?`)) return;
 
       const { error } = await supabase.from(TABLE_NAME).delete().eq("id", id);
       if (error) {
@@ -905,7 +1113,7 @@ $1
       await fetchEntries();
     }
 
-    function resetForm() {
+    function resetMainForm() {
       els.form.reset();
       els.editId.value = "";
       els.saveBtn.disabled = false;
@@ -926,74 +1134,6 @@ $1
       const sortedYears = Array.from(years).filter(Boolean).sort((a, b) => b - a);
       els.filterYear.innerHTML = `<option value="all">전체 연도</option>` + sortedYears.map(year => `<option value="${year}">${year}년</option>`).join("");
       els.filterYear.value = sortedYears.includes(Number(selected)) ? selected : "all";
-    }
-
-    async function lookupProductItem() {
-      if (!supabase) return;
-      const itemNo = fields.productItemNo.value.trim();
-      if (!itemNo) return;
-
-      const { data, error } = await supabase
-        .from("product_items")
-        .select("item_no, model_name, brand, brand_detail")
-        .eq("item_no", itemNo)
-        .maybeSingle();
-
-      if (error) {
-        console.error(error);
-        showToast("아이템번호 조회 오류: product_items 테이블을 확인해주세요.");
-        return;
-      }
-
-      if (!data) {
-        showToast("등록되지 않은 아이템번호입니다. 모델명을 입력하고 저장하면 DB에 자동 등록됩니다.");
-        return;
-      }
-
-      if (data.brand) {
-        fields.brand.value = data.brand;
-        fields.brandDetail.value = data.brand_detail || "";
-        handleBrandChange();
-      }
-
-      if (currentType === "event") fields.eventModel.value = data.model_name || fields.eventModel.value;
-      if (currentType === "model_change") fields.afterModel.value = data.model_name || fields.afterModel.value;
-      if (currentType === "etc") fields.relatedModel.value = data.model_name || fields.relatedModel.value;
-
-      showToast("아이템번호 DB에서 모델명을 불러왔습니다.");
-    }
-
-    async function upsertProductItem(payload) {
-      if (!supabase || !payload.product_item_no) return;
-
-      const modelName = getModelNameFromPayload(payload);
-      if (!modelName) return;
-
-      const { error } = await supabase.from("product_items").upsert({
-        item_no: payload.product_item_no,
-        brand: payload.brand,
-        brand_detail: payload.brand_detail,
-        model_name: modelName,
-        updated_at: new Date().toISOString()
-      }, { onConflict: "item_no" });
-
-      if (error) {
-        console.error(error);
-        showToast("저장은 완료됐지만 아이템번호 DB 등록은 실패했습니다.");
-      }
-    }
-
-    function getModelNameFromPayload(payload) {
-      if (payload.type === "event") return payload.event_model;
-      if (payload.type === "model_change") return payload.after_model || payload.before_model;
-      if (payload.type === "etc") return payload.related_model;
-      return "";
-    }
-
-    function getBaseDateByType(type) {
-      if (type === "event") return fields.eventStart.value || fields.eventEnd.value || todayString();
-      if (type === "model_change") return fields.applyDate.value || todayString();
-      return todayString();
     }
 
     function render() {
@@ -1057,8 +1197,8 @@ $1
           <td>${discountText(item)}</td>
           <td><div class="memo">${escapeHtml(item.note || "")}</div></td>
           <td>
-            <button class="btn-ghost" onclick="window.editEntry('${item.id}')">수정</button>
-            <button class="btn-ghost" style="color:#dc2626" onclick="window.deleteEntry('${item.id}')">삭제</button>
+            <button class="btn-ghost" type="button" onclick="window.editEntry('${item.id}')">수정</button>
+            <button class="btn-ghost" type="button" style="color:#dc2626" onclick="window.deleteEntry('${item.id}')">삭제</button>
           </td>
         `;
         els.entryList.appendChild(tr);
@@ -1132,6 +1272,19 @@ $1
       return `<span class="discount">-${formatWon(diff)}</span>`;
     }
 
+    function getBaseDateByType(type) {
+      if (type === "event") return fields.eventStart.value || fields.eventEnd.value || todayString();
+      if (type === "model_change") return fields.applyDate.value || todayString();
+      return todayString();
+    }
+
+    function getModelNameFromPayload(payload) {
+      if (payload.type === "event") return payload.event_model;
+      if (payload.type === "model_change") return payload.after_model || payload.before_model;
+      if (payload.type === "etc") return payload.related_model;
+      return "";
+    }
+
     function todayString() {
       const now = new Date();
       const yyyy = now.getFullYear();
@@ -1165,15 +1318,25 @@ $1
         .replaceAll("'", "&#039;");
     }
 
+    function escapeJs(value) {
+      return String(value || "")
+        .replaceAll("\\", "\\\\")
+        .replaceAll("'", "\\'")
+        .replaceAll("\n", " ")
+        .replaceAll("\r", " ");
+    }
+
     function showToast(message) {
       els.toast.textContent = message;
       els.toast.classList.add("show");
       clearTimeout(showToast.timer);
-      showToast.timer = setTimeout(() => els.toast.classList.remove("show"), 2200);
+      showToast.timer = setTimeout(() => els.toast.classList.remove("show"), 2400);
     }
 
     window.editEntry = editEntry;
     window.deleteEntry = deleteEntry;
+    window.deleteProductDbItem = deleteProductDbItem;
+    window.fillProductDbForm = fillProductDbForm;
   </script>
 </body>
 </html>
