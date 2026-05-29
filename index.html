@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>코스트코 가전 연간 계획 관리</title>
+  <title>코스트코 운영 기록 사이트</title>
   <style>
     :root {
       --bg: #f3f5f8;
@@ -372,11 +371,11 @@
 
     .cal-event {
       display: block;
-      width: 100%;
+      width: calc(100% + 16px);
       border: 0;
-      border-radius: 8px;
+      border-radius: 0;
       padding: 4px 6px;
-      margin-bottom: 4px;
+      margin: 0 -8px 4px -8px;
       color: #fff;
       font-size: 12px;
       line-height: 1.25;
@@ -386,6 +385,41 @@
       white-space: nowrap;
       cursor: pointer;
       font-weight: 850;
+      min-height: 22px;
+    }
+
+    .cal-event.span-single {
+      width: 100%;
+      margin-left: 0;
+      margin-right: 0;
+      border-radius: 8px;
+    }
+
+    .cal-event.span-start {
+      width: calc(100% + 8px);
+      margin-left: 0;
+      margin-right: -8px;
+      border-radius: 8px 0 0 8px;
+    }
+
+    .cal-event.span-middle {
+      color: transparent;
+    }
+
+    .cal-event.span-end {
+      width: calc(100% + 8px);
+      margin-left: -8px;
+      margin-right: 0;
+      border-radius: 0 8px 8px 0;
+      color: transparent;
+    }
+
+    .cal-event.span-start.span-end {
+      width: 100%;
+      margin-left: 0;
+      margin-right: 0;
+      border-radius: 8px;
+      color: #fff;
     }
 
     .cal-samsung { background: #2563eb; }
@@ -435,8 +469,8 @@
   <div class="app">
     <div class="topbar">
       <div>
-        <h1>코스트코 가전 연간 계획 관리</h1>
-        <p class="desc">행사 / 모델 변경 / 기타 이력을 공용 DB에 저장합니다. 코스트코 아이템번호를 입력하면 등록된 DB 기준으로 브랜드와 모델명이 자동 입력됩니다.</p>
+        <h1>코스트코 운영 기록 사이트</h1>
+        <p class="desc">행사 / 모델 변경 / 기타 운영 이력을 공용 DB에 저장합니다. 코스트코 아이템번호를 입력하면 등록된 DB 기준으로 브랜드와 모델명이 자동 입력됩니다.</p>
       </div>
       <div class="top-actions">
         <button class="btn-light" id="refreshBtn" type="button">새로고침</button>
@@ -1527,17 +1561,39 @@
         `;
 
         dayEvents.forEach(item => {
+          const segment = getCalendarSegment(item, dateStr, date);
           const btn = document.createElement("button");
           btn.type = "button";
-          btn.className = `cal-event ${brandColorClass(item.brand)}`;
+          btn.className = `cal-event ${brandColorClass(item.brand)} ${segment.className}`;
           btn.title = calendarEventText(item, false);
-          btn.textContent = calendarEventText(item, true);
+          btn.textContent = segment.showText ? calendarEventText(item, true) : "";
           btn.addEventListener("click", () => editEntry(item.id));
           cell.appendChild(btn);
         });
 
         els.calendarGrid.appendChild(cell);
       }
+    }
+
+    function getCalendarSegment(item, dateStr, dateObj) {
+      const range = getItemDateRange(item);
+      const isStart = dateStr === range.start;
+      const isEnd = dateStr === range.end;
+      const isWeekStart = dateObj.getDay() === 0;
+      const isWeekEnd = dateObj.getDay() === 6;
+
+      const segmentStart = isStart || isWeekStart;
+      const segmentEnd = isEnd || isWeekEnd;
+
+      let className = "span-middle";
+      if (segmentStart && segmentEnd) className = "span-single";
+      else if (segmentStart) className = "span-start";
+      else if (segmentEnd) className = "span-end";
+
+      return {
+        className,
+        showText: segmentStart
+      };
     }
 
     function getEventsForDate(dateStr) {
