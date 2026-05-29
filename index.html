@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>코스트코 가전 연간 계획 관리</title>
+  <style>
+    :root {
+      --bg: #f3f5f8;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #667085;
+      --line: #e5e7eb;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --danger: #dc2626;
+      --danger-bg: #fee2e2;
+      --success: #16a34a;
+      --success-bg: #dcfce7;
+      --purple-bg: #f3e8ff;
+      --purple-text: #7e22ce;
+      --orange-bg: #ffedd5;
+      --orange-text: #c2410c;
+      --shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Pretendard, "Noto Sans KR", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .app {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 26px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    h1, h2, p { margin-top: 0; }
+    h1 { font-size: 30px; letter-spacing: -0.04em; margin-bottom: 8px; }
+    h2 { font-size: 20px; letter-spacing: -0.03em; margin-bottom: 0; }
+    .desc { color: var(--muted); font-size: 14px; margin-bottom: 0; }
+
+    button, input, select, textarea { font: inherit; }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: 800;
+      transition: .15s ease;
+      white-space: nowrap;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-light { background: #fff; color: var(--text); border: 1px solid var(--line); }
+    .btn-danger { background: var(--danger-bg); color: var(--danger); }
+    .btn-ghost { background: transparent; color: var(--primary); padding: 6px 8px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 430px 1fr;
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(229, 231, 235, .8);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .form-card {
+      padding: 20px;
+      position: sticky;
+      top: 16px;
+      align-self: start;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      background: #eef2f7;
+      padding: 6px;
+      border-radius: 14px;
+      margin-bottom: 16px;
+    }
+
+    .tab { background: transparent; color: var(--muted); }
+    .tab.active { background: #fff; color: var(--primary); box-shadow: 0 4px 10px rgba(15,23,42,.08); }
+
+    .field { margin-bottom: 12px; }
+    .field label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 900; color: #344054; }
+
+    .field input, .field select, .field textarea,
+    .filters input, .filters select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 11px 12px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+
+    .field textarea { min-height: 86px; resize: vertical; }
+
+    .field input:focus, .field select:focus, .field textarea:focus,
+    .filters input:focus, .filters select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+    }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .form-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+
+    .notice {
+      margin-top: 12px;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.45;
+      background: #eff6ff;
+      color: #1e40af;
+      font-weight: 700;
+    }
+
+    .setup-warning {
+      margin-bottom: 16px;
+      border-radius: 14px;
+      padding: 14px;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #9a3412;
+      font-weight: 800;
+      line-height: 1.5;
+    }
+
+    .list-card { overflow: hidden; }
+    .toolbar { padding: 18px; border-bottom: 1px solid var(--line); }
+
+    .summary-row { display: grid; grid-template-columns: repeat(5,1fr); gap: 10px; margin-bottom: 14px; }
+    .summary-box { background: #f8fafc; border: 1px solid var(--line); border-radius: 14px; padding: 13px; }
+    .summary-box strong { display: block; font-size: 22px; letter-spacing: -0.04em; }
+    .summary-box span { color: var(--muted); font-size: 12px; font-weight: 900; }
+
+    .filters { display: grid; grid-template-columns: 1.05fr 1fr .8fr .8fr 1.5fr auto; gap: 8px; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 1240px; }
+    th, td { border-bottom: 1px solid var(--line); padding: 12px 10px; text-align: left; vertical-align: top; font-size: 13px; }
+    th { background: #f8fafc; color: #344054; font-size: 12px; position: sticky; top: 0; z-index: 1; }
+    tbody tr:hover { background: #f9fafb; }
+
+    .item-no { font-weight: 950; color: #111827; white-space: nowrap; }
+    .badge, .status {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+    .badge.event { background: #dbeafe; color: #1d4ed8; }
+    .badge.model_change { background: var(--purple-bg); color: var(--purple-text); }
+    .badge.etc { background: var(--orange-bg); color: var(--orange-text); }
+
+    .status.upcoming { background: #dbeafe; color: #1d4ed8; }
+    .status.active { background: var(--success-bg); color: var(--success); }
+    .status.done { background: #e5e7eb; color: #374151; }
+    .status.record { background: #f3e8ff; color: #7e22ce; }
+
+    .price { white-space: nowrap; font-weight: 850; }
+    .discount { color: var(--danger); font-weight: 950; white-space: nowrap; }
+    .memo { max-width: 280px; color: #475467; line-height: 1.45; white-space: pre-wrap; }
+    .empty { text-align: center; padding: 50px 20px; color: var(--muted); }
+    .hidden { display: none !important; }
+
+    .toast {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      background: #111827;
+      color: #fff;
+      padding: 13px 16px;
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: .2s ease;
+      z-index: 999;
+      font-weight: 850;
+      font-size: 14px;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 1080px) {
+      .grid { grid-template-columns: 1fr; }
+      .form-card { position: static; }
+      .filters { grid-template-columns: 1fr 1fr; }
+      .summary-row { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .app { padding: 16px; }
+      .topbar { flex-direction: column; align-items: stretch; }
+      .two-col, .form-actions, .filters, .summary-row { grid-template-columns: 1fr; }
+      h1 { font-size: 24px; }
+      .tabs { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div>
+        <h1>코스트코 가전 연간 계획 관리</h1>
+        <p class="desc">행사 / 모델 변경 / 기타 이력을 공용 DB에 저장합니다. 여러 명이 같은 주소로 접속해 같이 사용할 수 있습니다.</p>
+      </div>
+      <div>
+        <button class="btn-light" id="refreshBtn">새로고침</button>
+      </div>
+    </div>
+
+    <div class="setup-warning hidden" id="setupWarning">
+      Supabase 연결 정보가 아직 입력되지 않았습니다. 코드 상단의 SUPABASE_URL, SUPABASE_KEY를 입력해야 공용 저장이 됩니다.
+    </div>
+
+    <div class="grid">
+      <section class="card form-card">
+        <div class="card-header">
+          <h2 id="formTitle">행사 등록</h2>
+          <button class="btn-ghost" id="newBtn">신규 입력</button>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active" type="button" data-type="event">행사</button>
+          <button class="tab" type="button" data-type="model_change">모델 변경</button>
+          <button class="tab" type="button" data-type="etc">기타</button>
+        </div>
+
+        <form id="entryForm">
+          <input type="hidden" id="editId" />
+          <input type="hidden" id="entryType" value="event" />
+
+          <div class="two-col">
+            <div class="field">
+              <label for="brand">브랜드</label>
+              <select id="brand" required>
+                <option value="">선택</option>
+                <option value="삼성">삼성</option>
+                <option value="LG">LG</option>
+                <option value="기타">기타</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="brandDetail">기타 브랜드명</label>
+              <input type="text" id="brandDetail" placeholder="예: 위니아 / 쿠쿠 / 다이슨" disabled />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="baseDate">일자</label>
+            <input type="date" id="baseDate" required />
+          </div>
+
+          <div id="eventFields">
+            <div class="field">
+              <label for="eventName">행사 일정</label>
+              <input type="text" id="eventName" placeholder="예: 6월 에어컨 IRC / 브랜드위크 / TV 행사" />
+            </div>
+            <div class="field">
+              <label for="eventModel">행사 모델</label>
+              <input type="text" id="eventModel" placeholder="예: AF60F19D11WN / KQ75QF7SAFXKR" />
+            </div>
+            <div class="two-col">
+              <div class="field">
+                <label for="eventStart">행사 시작일</label>
+                <input type="date" id="eventStart" />
+              </div>
+              <div class="field">
+                <label for="eventEnd">행사 종료일</label>
+                <input type="date" id="eventEnd" />
+              </div>
+            </div>
+            <div class="two-col">
+              <div class="field">
+                <label for="beforePrice">행사 전 가격</label>
+                <input type="text" inputmode="numeric" id="beforePrice" placeholder="예: 2990000" />
+              </div>
+              <div class="field">
+                <label for="finalPrice">행사 최종가</label>
+                <input type="text" inputmode="numeric" id="finalPrice" placeholder="예: 2590000" />
+              </div>
+            </div>
+          </div>
+
+          <div id="modelChangeFields" class="hidden">
+            <div class="field">
+              <label for="changeTitle">모델 변경 내용</label>
+              <input type="text" id="changeTitle" placeholder="예: 75형 TV 행사 모델 변경 / 에어컨 라인업 교체" />
+            </div>
+            <div class="two-col">
+              <div class="field">
+                <label for="beforeModel">기존 모델</label>
+                <input type="text" id="beforeModel" placeholder="예: KQ75QF7SAFXKR" />
+              </div>
+              <div class="field">
+                <label for="afterModel">변경 모델</label>
+                <input type="text" id="afterModel" placeholder="예: KQ75QNH70AFXKR" />
+              </div>
+            </div>
+            <div class="two-col">
+              <div class="field">
+                <label for="applyDate">적용일</label>
+                <input type="date" id="applyDate" />
+              </div>
+              <div class="field">
+                <label for="salePrice">판매 가격</label>
+                <input type="text" inputmode="numeric" id="salePrice" placeholder="예: 2990000" />
+              </div>
+            </div>
+          </div>
+
+          <div id="etcFields" class="hidden">
+            <div class="field">
+              <label for="etcTitle">기타 제목</label>
+              <input type="text" id="etcTitle" placeholder="예: 진열 위치 변경 / 가격표 수정 / 행사 미확정 공유" />
+            </div>
+            <div class="two-col">
+              <div class="field">
+                <label for="relatedModel">관련 모델</label>
+                <input type="text" id="relatedModel" placeholder="관련 모델이 있으면 입력" />
+              </div>
+              <div class="field">
+                <label for="etcPrice">관련 가격</label>
+                <input type="text" inputmode="numeric" id="etcPrice" placeholder="가격이 있으면 입력" />
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="note">비고 / 상세 내용</label>
+            <textarea id="note" placeholder="점포, 행사 조건, 변경 사유, 입고 특이사항, VOC 우려 등"></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" id="saveBtn">저장</button>
+            <button type="button" class="btn-light" id="resetBtn">초기화</button>
+          </div>
+
+          <div class="notice">저장하면 공용 DB에 바로 반영됩니다. 저장된 항목은 목록의 수정 버튼으로 다시 불러와 수정할 수 있습니다.</div>
+        </form>
+      </section>
+
+      <section class="card list-card">
+        <div class="toolbar">
+          <div class="summary-row">
+            <div class="summary-box"><strong id="totalCount">0</strong><span>전체 등록</span></div>
+            <div class="summary-box"><strong id="eventCount">0</strong><span>행사</span></div>
+            <div class="summary-box"><strong id="changeCount">0</strong><span>모델 변경</span></div>
+            <div class="summary-box"><strong id="etcCount">0</strong><span>기타</span></div>
+            <div class="summary-box"><strong id="viewCount">0</strong><span>현재 조회</span></div>
+          </div>
+
+          <div class="filters">
+            <select id="filterType">
+              <option value="all">전체 구분</option>
+              <option value="event">행사</option>
+              <option value="model_change">모델 변경</option>
+              <option value="etc">기타</option>
+            </select>
+            <select id="filterBrand">
+              <option value="all">전체 브랜드</option>
+              <option value="삼성">삼성</option>
+              <option value="LG">LG</option>
+              <option value="기타">기타</option>
+            </select>
+            <select id="filterYear">
+              <option value="all">전체 연도</option>
+            </select>
+            <select id="filterMonth">
+              <option value="all">전체 월</option>
+              <option value="01">1월</option>
+              <option value="02">2월</option>
+              <option value="03">3월</option>
+              <option value="04">4월</option>
+              <option value="05">5월</option>
+              <option value="06">6월</option>
+              <option value="07">7월</option>
+              <option value="08">8월</option>
+              <option value="09">9월</option>
+              <option value="10">10월</option>
+              <option value="11">11월</option>
+              <option value="12">12월</option>
+            </select>
+            <input type="text" id="searchInput" placeholder="아이템 번호 / 모델명 / 제목 / 비고 검색" />
+            <button class="btn-light" id="clearFilterBtn">필터 초기화</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>아이템 번호</th>
+                <th>구분</th>
+                <th>브랜드</th>
+                <th>일자</th>
+                <th>상태</th>
+                <th>내용</th>
+                <th>모델</th>
+                <th>기간/적용일</th>
+                <th>가격</th>
+                <th>할인</th>
+                <th>비고</th>
+                <th>관리</th>
+              </tr>
+            </thead>
+            <tbody id="entryList"></tbody>
+          </table>
+          <div class="empty hidden" id="emptyState">등록된 항목이 없습니다.</div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">저장되었습니다.</div>
+
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+    /*
+      1) Supabase 프로젝트 생성
+      2) SQL Editor에 아래 안내 SQL 실행
+      3) Project URL / anon 또는 publishable key를 아래에 입력
+    */
+    const SUPABASE_URL = "여기에_SUPABASE_PROJECT_URL";
+    const SUPABASE_KEY = "여기에_SUPABASE_ANON_OR_PUBLISHABLE_KEY";
+    const TABLE_NAME = "ce_plan_items";
+
+    const isConfigured = !SUPABASE_URL.includes("여기에_") && !SUPABASE_KEY.includes("여기에_");
+    const supabase = isConfigured ? createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+    let entries = [];
+    let currentType = "event";
+
+    const $ = (id) => document.getElementById(id);
+    const els = {
+      setupWarning: $("setupWarning"),
+      form: $("entryForm"),
+      formTitle: $("formTitle"),
+      editId: $("editId"),
+      entryType: $("entryType"),
+      eventFields: $("eventFields"),
+      modelChangeFields: $("modelChangeFields"),
+      etcFields: $("etcFields"),
+      saveBtn: $("saveBtn"),
+      resetBtn: $("resetBtn"),
+      newBtn: $("newBtn"),
+      refreshBtn: $("refreshBtn"),
+      entryList: $("entryList"),
+      emptyState: $("emptyState"),
+      filterType: $("filterType"),
+      filterBrand: $("filterBrand"),
+      filterYear: $("filterYear"),
+      filterMonth: $("filterMonth"),
+      searchInput: $("searchInput"),
+      clearFilterBtn: $("clearFilterBtn"),
+      totalCount: $("totalCount"),
+      eventCount: $("eventCount"),
+      changeCount: $("changeCount"),
+      etcCount: $("etcCount"),
+      viewCount: $("viewCount"),
+      toast: $("toast")
+    };
+
+    const fields = {
+      brand: $("brand"),
+      brandDetail: $("brandDetail"),
+      baseDate: $("baseDate"),
+      eventName: $("eventName"),
+      eventModel: $("eventModel"),
+      eventStart: $("eventStart"),
+      eventEnd: $("eventEnd"),
+      beforePrice: $("beforePrice"),
+      finalPrice: $("finalPrice"),
+      changeTitle: $("changeTitle"),
+      beforeModel: $("beforeModel"),
+      afterModel: $("afterModel"),
+      applyDate: $("applyDate"),
+      salePrice: $("salePrice"),
+      etcTitle: $("etcTitle"),
+      relatedModel: $("relatedModel"),
+      etcPrice: $("etcPrice"),
+      note: $("note")
+    };
+
+    init();
+
+    async function init() {
+      bindEvents();
+      fields.baseDate.value = todayString();
+
+      if (!isConfigured) {
+        els.setupWarning.classList.remove("hidden");
+        showToast("Supabase 연결 정보를 먼저 입력해주세요.");
+        render();
+        return;
+      }
+
+      await fetchEntries();
+      setInterval(fetchEntries, 15000);
+    }
+
+    function bindEvents() {
+      document.querySelectorAll(".tab").forEach(tab => {
+        tab.addEventListener("click", () => setType(tab.dataset.type));
+      });
+
+      els.form.addEventListener("submit", handleSubmit);
+      els.resetBtn.addEventListener("click", resetForm);
+      els.newBtn.addEventListener("click", resetForm);
+      els.refreshBtn.addEventListener("click", fetchEntries);
+
+      fields.brand.addEventListener("change", handleBrandChange);
+
+      [fields.beforePrice, fields.finalPrice, fields.salePrice, fields.etcPrice].forEach(input => {
+        input.addEventListener("input", () => input.value = onlyNumber(input.value));
+      });
+
+      [els.filterType, els.filterBrand, els.filterYear, els.filterMonth, els.searchInput].forEach(el => {
+        el.addEventListener("input", render);
+        el.addEventListener("change", render);
+      });
+
+      els.clearFilterBtn.addEventListener("click", () => {
+        els.filterType.value = "all";
+        els.filterBrand.value = "all";
+        els.filterYear.value = "all";
+        els.filterMonth.value = "all";
+        els.searchInput.value = "";
+        render();
+      });
+    }
+
+    function handleBrandChange() {
+      const isEtc = fields.brand.value === "기타";
+      fields.brandDetail.disabled = !isEtc;
+      if (!isEtc) fields.brandDetail.value = "";
+      if (isEtc) fields.brandDetail.focus();
+    }
+
+    function setType(type) {
+      currentType = type;
+      els.entryType.value = type;
+
+      document.querySelectorAll(".tab").forEach(tab => {
+        tab.classList.toggle("active", tab.dataset.type === type);
+      });
+
+      els.eventFields.classList.toggle("hidden", type !== "event");
+      els.modelChangeFields.classList.toggle("hidden", type !== "model_change");
+      els.etcFields.classList.toggle("hidden", type !== "etc");
+
+      const titleMap = {
+        event: "행사 등록",
+        model_change: "모델 변경 등록",
+        etc: "기타 등록"
+      };
+      els.formTitle.textContent = titleMap[type] || "등록";
+    }
+
+    async function fetchEntries() {
+      if (!supabase) return;
+
+      const { data, error } = await supabase
+        .from(TABLE_NAME)
+        .select("*")
+        .order("base_date", { ascending: false })
+        .order("seq_no", { ascending: false });
+
+      if (error) {
+        console.error(error);
+        showToast("데이터 조회 오류: Supabase 설정을 확인해주세요.");
+        return;
+      }
+
+      entries = data || [];
+      populateYearOptions();
+      render();
+    }
+
+    async function handleSubmit(e) {
+      e.preventDefault();
+
+      if (!supabase) {
+        showToast("Supabase 연결 정보가 없습니다.");
+        return;
+      }
+
+      const type = els.entryType.value;
+      const editId = els.editId.value;
+      const brand = fields.brand.value;
+      const brandDetail = fields.brandDetail.value.trim();
+      const baseDate = fields.baseDate.value;
+
+      if (!brand || !baseDate) {
+        showToast("브랜드와 일자는 필수입니다.");
+        return;
+      }
+
+      if (brand === "기타" && !brandDetail) {
+        showToast("기타 브랜드명을 입력해주세요.");
+        return;
+      }
+
+      let payload = {
+        type,
+        brand,
+        brand_detail: brand === "기타" ? brandDetail : null,
+        base_date: baseDate,
+        note: fields.note.value.trim(),
+        updated_at: new Date().toISOString(),
+
+        event_name: null,
+        event_model: null,
+        event_start: null,
+        event_end: null,
+        before_price: null,
+        final_price: null,
+
+        change_title: null,
+        before_model: null,
+        after_model: null,
+        apply_date: null,
+        sale_price: null,
+
+        etc_title: null,
+        related_model: null,
+        etc_price: null
+      };
+
+      if (type === "event") {
+        payload.event_name = fields.eventName.value.trim();
+        payload.event_model = fields.eventModel.value.trim();
+        payload.event_start = fields.eventStart.value || null;
+        payload.event_end = fields.eventEnd.value || null;
+        payload.before_price = toNumberOrNull(fields.beforePrice.value);
+        payload.final_price = toNumberOrNull(fields.finalPrice.value);
+
+        if (!payload.event_name && !payload.event_model) {
+          showToast("행사 일정 또는 행사 모델을 입력해주세요.");
+          return;
+        }
+      }
+
+      if (type === "model_change") {
+        payload.change_title = fields.changeTitle.value.trim();
+        payload.before_model = fields.beforeModel.value.trim();
+        payload.after_model = fields.afterModel.value.trim();
+        payload.apply_date = fields.applyDate.value || null;
+        payload.sale_price = toNumberOrNull(fields.salePrice.value);
+
+        if (!payload.change_title && !payload.before_model && !payload.after_model) {
+          showToast("모델 변경 내용 또는 모델명을 입력해주세요.");
+          return;
+        }
+      }
+
+      if (type === "etc") {
+        payload.etc_title = fields.etcTitle.value.trim();
+        payload.related_model = fields.relatedModel.value.trim();
+        payload.etc_price = toNumberOrNull(fields.etcPrice.value);
+
+        if (!payload.etc_title && !payload.related_model && !payload.note) {
+          showToast("기타 제목, 관련 모델 또는 상세 내용을 입력해주세요.");
+          return;
+        }
+      }
+
+      els.saveBtn.disabled = true;
+      els.saveBtn.textContent = editId ? "수정 중..." : "저장 중...";
+
+      let result;
+      if (editId) {
+        result = await supabase.from(TABLE_NAME).update(payload).eq("id", editId).select().single();
+      } else {
+        result = await supabase.from(TABLE_NAME).insert(payload).select().single();
+      }
+
+      els.saveBtn.disabled = false;
+      els.saveBtn.textContent = editId ? "수정 저장" : "저장";
+
+      if (result.error) {
+        console.error(result.error);
+        showToast("저장 오류: 권한 또는 테이블 설정을 확인해주세요.");
+        return;
+      }
+
+      showToast(editId ? "수정되었습니다." : "저장되었습니다.");
+      resetForm(false);
+      await fetchEntries();
+    }
+
+    function editEntry(id) {
+      const item = entries.find(x => x.id === id);
+      if (!item) return;
+
+      setType(item.type);
+      els.editId.value = item.id;
+      els.saveBtn.textContent = "수정 저장";
+
+      const titleMap = {
+        event: "행사 수정",
+        model_change: "모델 변경 수정",
+        etc: "기타 수정"
+      };
+      els.formTitle.textContent = titleMap[item.type] || "수정";
+
+      fields.brand.value = item.brand || "";
+      fields.brandDetail.value = item.brand_detail || "";
+      handleBrandChange();
+      fields.baseDate.value = item.base_date || todayString();
+      fields.note.value = item.note || "";
+
+      fields.eventName.value = item.event_name || "";
+      fields.eventModel.value = item.event_model || "";
+      fields.eventStart.value = item.event_start || "";
+      fields.eventEnd.value = item.event_end || "";
+      fields.beforePrice.value = item.before_price || "";
+      fields.finalPrice.value = item.final_price || "";
+
+      fields.changeTitle.value = item.change_title || "";
+      fields.beforeModel.value = item.before_model || "";
+      fields.afterModel.value = item.after_model || "";
+      fields.applyDate.value = item.apply_date || "";
+      fields.salePrice.value = item.sale_price || "";
+
+      fields.etcTitle.value = item.etc_title || "";
+      fields.relatedModel.value = item.related_model || "";
+      fields.etcPrice.value = item.etc_price || "";
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    async function deleteEntry(id) {
+      const item = entries.find(x => x.id === id);
+      if (!item) return;
+      if (!confirm(`${item.item_no} 항목을 삭제하시겠습니까?`)) return;
+
+      const { error } = await supabase.from(TABLE_NAME).delete().eq("id", id);
+      if (error) {
+        console.error(error);
+        showToast("삭제 오류: 권한 설정을 확인해주세요.");
+        return;
+      }
+
+      showToast("삭제되었습니다.");
+      await fetchEntries();
+    }
+
+    function resetForm() {
+      els.form.reset();
+      els.editId.value = "";
+      els.saveBtn.disabled = false;
+      els.saveBtn.textContent = "저장";
+      fields.baseDate.value = todayString();
+      fields.brandDetail.disabled = true;
+      setType(currentType);
+    }
+
+    function populateYearOptions() {
+      const selected = els.filterYear.value || "all";
+      const currentYear = new Date().getFullYear();
+      const years = new Set([currentYear - 1, currentYear, currentYear + 1]);
+
+      entries.forEach(item => {
+        if (item.base_date) years.add(Number(item.base_date.slice(0, 4)));
+      });
+
+      const sortedYears = Array.from(years).filter(Boolean).sort((a, b) => b - a);
+      els.filterYear.innerHTML = `<option value="all">전체 연도</option>` + sortedYears.map(year => `<option value="${year}">${year}년</option>`).join("");
+      els.filterYear.value = sortedYears.includes(Number(selected)) ? selected : "all";
+    }
+
+    function render() {
+      const filtered = getFilteredEntries();
+      els.totalCount.textContent = entries.length;
+      els.eventCount.textContent = entries.filter(x => x.type === "event").length;
+      els.changeCount.textContent = entries.filter(x => x.type === "model_change").length;
+      els.etcCount.textContent = entries.filter(x => x.type === "etc").length;
+      els.viewCount.textContent = filtered.length;
+      renderTable(filtered);
+    }
+
+    function getFilteredEntries() {
+      const type = els.filterType.value;
+      const brand = els.filterBrand.value;
+      const year = els.filterYear.value;
+      const month = els.filterMonth.value;
+      const keyword = els.searchInput.value.trim().toLowerCase();
+
+      return entries
+        .filter(item => type === "all" || item.type === type)
+        .filter(item => brand === "all" || item.brand === brand)
+        .filter(item => year === "all" || (item.base_date || "").startsWith(year))
+        .filter(item => month === "all" || (item.base_date || "").slice(5, 7) === month)
+        .filter(item => {
+          if (!keyword) return true;
+          return [
+            item.item_no,
+            item.brand,
+            item.brand_detail,
+            item.base_date,
+            item.event_name,
+            item.event_model,
+            item.change_title,
+            item.before_model,
+            item.after_model,
+            item.etc_title,
+            item.related_model,
+            item.note
+          ].join(" ").toLowerCase().includes(keyword);
+        });
+    }
+
+    function renderTable(list) {
+      els.entryList.innerHTML = "";
+      els.emptyState.classList.toggle("hidden", list.length !== 0);
+
+      list.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><span class="item-no">${escapeHtml(item.item_no || "-")}</span></td>
+          <td>${typeBadge(item.type)}</td>
+          <td><strong>${escapeHtml(brandText(item))}</strong></td>
+          <td>${formatDate(item.base_date)}</td>
+          <td>${statusBadge(item)}</td>
+          <td>${escapeHtml(mainTitle(item))}</td>
+          <td>${modelText(item)}</td>
+          <td>${periodText(item)}</td>
+          <td>${priceText(item)}</td>
+          <td>${discountText(item)}</td>
+          <td><div class="memo">${escapeHtml(item.note || "")}</div></td>
+          <td>
+            <button class="btn-ghost" onclick="window.editEntry('${item.id}')">수정</button>
+            <button class="btn-ghost" style="color:#dc2626" onclick="window.deleteEntry('${item.id}')">삭제</button>
+          </td>
+        `;
+        els.entryList.appendChild(tr);
+      });
+    }
+
+    function brandText(item) {
+      if (item.brand === "기타" && item.brand_detail) return `기타(${item.brand_detail})`;
+      return item.brand || "-";
+    }
+
+    function mainTitle(item) {
+      if (item.type === "event") return item.event_name || "-";
+      if (item.type === "model_change") return item.change_title || "-";
+      if (item.type === "etc") return item.etc_title || "-";
+      return "-";
+    }
+
+    function modelText(item) {
+      if (item.type === "event") return `<strong>${escapeHtml(item.event_model || "-")}</strong>`;
+      if (item.type === "model_change") {
+        const before = item.before_model ? `기존: ${escapeHtml(item.before_model)}` : "";
+        const after = item.after_model ? `변경: ${escapeHtml(item.after_model)}` : "";
+        return `<div class="memo"><strong>${[before, after].filter(Boolean).join("<br>") || "-"}</strong></div>`;
+      }
+      if (item.type === "etc") return `<strong>${escapeHtml(item.related_model || "-")}</strong>`;
+      return "-";
+    }
+
+    function typeBadge(type) {
+      if (type === "event") return `<span class="badge event">행사</span>`;
+      if (type === "model_change") return `<span class="badge model_change">모델 변경</span>`;
+      return `<span class="badge etc">기타</span>`;
+    }
+
+    function statusBadge(item) {
+      if (item.type !== "event") return `<span class="status record">기록</span>`;
+      const today = todayString();
+      const start = item.event_start || item.base_date;
+      const end = item.event_end || item.event_start || item.base_date;
+      if (start && today < start) return `<span class="status upcoming">예정</span>`;
+      if (start && end && today >= start && today <= end) return `<span class="status active">진행중</span>`;
+      return `<span class="status done">종료</span>`;
+    }
+
+    function periodText(item) {
+      if (item.type === "event") {
+        if (!item.event_start && !item.event_end) return "-";
+        return `${formatDate(item.event_start)} ~ ${formatDate(item.event_end)}`;
+      }
+      if (item.type === "model_change") return item.apply_date ? `적용 ${formatDate(item.apply_date)}` : "-";
+      return "-";
+    }
+
+    function priceText(item) {
+      if (item.type === "event") {
+        const before = item.before_price ? `행사전 ${formatWon(item.before_price)}` : "";
+        const final = item.final_price ? `최종 ${formatWon(item.final_price)}` : "";
+        return `<div class="price">${[before, final].filter(Boolean).join("<br>") || "-"}</div>`;
+      }
+      if (item.type === "model_change") return `<div class="price">${item.sale_price ? formatWon(item.sale_price) : "-"}</div>`;
+      if (item.type === "etc") return `<div class="price">${item.etc_price ? formatWon(item.etc_price) : "-"}</div>`;
+      return "-";
+    }
+
+    function discountText(item) {
+      if (item.type !== "event") return "-";
+      if (!item.before_price || !item.final_price) return "-";
+      const diff = Number(item.before_price) - Number(item.final_price);
+      if (diff <= 0) return "-";
+      return `<span class="discount">-${formatWon(diff)}</span>`;
+    }
+
+    function todayString() {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, "0");
+      const dd = String(now.getDate()).padStart(2, "0");
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    function onlyNumber(value) { return String(value || "").replace(/[^0-9]/g, ""); }
+
+    function toNumberOrNull(value) {
+      const n = Number(onlyNumber(value));
+      return Number.isFinite(n) && n > 0 ? n : null;
+    }
+
+    function formatWon(value) { return value ? `${Number(value).toLocaleString("ko-KR")}원` : "-"; }
+
+    function formatDate(value) {
+      if (!value) return "-";
+      const [y, m, d] = value.split("-");
+      if (!y || !m || !d) return value;
+      return `${y}.${m}.${d}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function showToast(message) {
+      els.toast.textContent = message;
+      els.toast.classList.add("show");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => els.toast.classList.remove("show"), 2200);
+    }
+
+    window.editEntry = editEntry;
+    window.deleteEntry = deleteEntry;
+  </script>
+</body>
+</html>
