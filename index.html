@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -75,6 +76,13 @@
     .btn-danger { background: var(--danger-bg); color: var(--danger); }
     .btn-ghost { background: transparent; color: var(--primary); padding: 6px 8px; }
 
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
     .grid {
       display: grid;
       grid-template-columns: 430px 1fr;
@@ -103,9 +111,7 @@
       margin-bottom: 16px;
     }
 
-    .mini-title {
-      margin-bottom: 12px;
-    }
+    .mini-title { margin-bottom: 12px; }
 
     .mini-title span {
       color: var(--muted);
@@ -233,6 +239,7 @@
       font-weight: 950;
       white-space: nowrap;
     }
+
     .badge.event { background: #dbeafe; color: #1d4ed8; }
     .badge.model_change { background: var(--purple-bg); color: var(--purple-text); }
     .badge.etc { background: var(--orange-bg); color: var(--orange-text); }
@@ -248,6 +255,144 @@
     .empty { text-align: center; padding: 50px 20px; color: var(--muted); }
     .hidden { display: none !important; }
 
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, .52);
+      z-index: 1000;
+      padding: 18px;
+    }
+
+    .modal-backdrop.open {
+      display: grid;
+      place-items: center;
+    }
+
+    .calendar-modal {
+      width: min(1380px, 100%);
+      max-height: 94vh;
+      overflow: hidden;
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 30px 90px rgba(0,0,0,.28);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .calendar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #f8fafc;
+    }
+
+    .calendar-title {
+      font-size: 22px;
+      font-weight: 950;
+      letter-spacing: -0.04em;
+    }
+
+    .calendar-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .calendar-body {
+      overflow: auto;
+      padding: 0;
+    }
+
+    .calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .calendar-weekdays div {
+      padding: 10px 8px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 950;
+      color: #344054;
+      border-right: 1px solid var(--line);
+    }
+
+    .calendar-weekdays div:first-child { color: #dc2626; }
+    .calendar-weekdays div:last-child { color: #2563eb; }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(130px, 1fr));
+      min-width: 980px;
+    }
+
+    .calendar-cell {
+      min-height: 145px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 8px;
+      background: #fff;
+    }
+
+    .calendar-cell.other-month {
+      background: #f8fafc;
+      color: #98a2b3;
+    }
+
+    .calendar-cell.today {
+      outline: 2px solid rgba(37,99,235,.35);
+      outline-offset: -2px;
+      background: #eff6ff;
+    }
+
+    .calendar-date {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 950;
+      margin-bottom: 6px;
+    }
+
+    .calendar-date .holiday {
+      color: #dc2626;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .cal-event {
+      display: block;
+      width: 100%;
+      border: 0;
+      border-radius: 8px;
+      padding: 4px 6px;
+      margin-bottom: 4px;
+      color: #fff;
+      font-size: 12px;
+      line-height: 1.25;
+      text-align: left;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: pointer;
+      font-weight: 850;
+    }
+
+    .cal-samsung { background: #2563eb; }
+    .cal-lg { background: #dc2626; }
+    .cal-etcbrand { background: #f97316; }
+    .cal-none { background: #64748b; }
+
     .toast {
       position: fixed;
       right: 22px;
@@ -261,7 +406,7 @@
       transform: translateY(10px);
       pointer-events: none;
       transition: .2s ease;
-      z-index: 999;
+      z-index: 2000;
       font-weight: 850;
       font-size: 14px;
     }
@@ -273,12 +418,16 @@
       .filters { grid-template-columns: 1fr 1fr; }
       .summary-row { grid-template-columns: 1fr 1fr; }
     }
+
     @media (max-width: 640px) {
       .app { padding: 16px; }
       .topbar { flex-direction: column; align-items: stretch; }
+      .top-actions { justify-content: stretch; }
+      .top-actions button { flex: 1; }
       .two-col, .form-actions, .filters, .summary-row, .product-db-actions, .item-row { grid-template-columns: 1fr; }
       h1 { font-size: 24px; }
       .tabs { grid-template-columns: 1fr; }
+      .calendar-grid { grid-template-columns: repeat(7, 150px); }
     }
   </style>
 </head>
@@ -289,8 +438,9 @@
         <h1>코스트코 가전 연간 계획 관리</h1>
         <p class="desc">행사 / 모델 변경 / 기타 이력을 공용 DB에 저장합니다. 코스트코 아이템번호를 입력하면 등록된 DB 기준으로 브랜드와 모델명이 자동 입력됩니다.</p>
       </div>
-      <div>
+      <div class="top-actions">
         <button class="btn-light" id="refreshBtn" type="button">새로고침</button>
+        <button class="btn-primary" id="calendarBtn" type="button">캘린더 확인</button>
       </div>
     </div>
 
@@ -582,7 +732,7 @@
                 <th>일자</th>
                 <th>상태</th>
                 <th>내용</th>
-                <th>모델</th>
+                <th>모델/대상</th>
                 <th>기간/적용일</th>
                 <th>가격</th>
                 <th>할인</th>
@@ -598,13 +748,39 @@
     </div>
   </div>
 
+  <div class="modal-backdrop" id="calendarModal">
+    <div class="calendar-modal">
+      <div class="calendar-header">
+        <div class="calendar-title" id="calendarTitle">2026-05</div>
+        <div class="calendar-actions">
+          <button class="btn-light" id="prevMonthBtn" type="button">이전달</button>
+          <button class="btn-light" id="todayBtn" type="button">오늘</button>
+          <button class="btn-light" id="nextMonthBtn" type="button">다음달</button>
+          <button class="btn-danger" id="closeCalendarBtn" type="button">닫기</button>
+        </div>
+      </div>
+      <div class="calendar-body">
+        <div class="calendar-weekdays">
+          <div>일</div>
+          <div>월</div>
+          <div>화</div>
+          <div>수</div>
+          <div>목</div>
+          <div>금</div>
+          <div>토</div>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast">저장되었습니다.</div>
 
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-    const SUPABASE_URL = "https://lmkprhvbpanzchskfggy.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_X5wZWJufMbu8K3zo2lwjBA_xcBf_SSK";
+    const SUPABASE_URL = "여기에_SUPABASE_PROJECT_URL";
+    const SUPABASE_KEY = "여기에_SUPABASE_PUBLISHABLE_KEY";
     const TABLE_NAME = "ce_plan_items";
     const PRODUCT_TABLE = "product_items";
 
@@ -614,8 +790,10 @@
     let entries = [];
     let currentType = "event";
     let lookupTimer = null;
+    let calendarDate = new Date();
 
     const $ = (id) => document.getElementById(id);
+
     const els = {
       setupWarning: $("setupWarning"),
       form: $("entryForm"),
@@ -630,6 +808,7 @@
       resetBtn: $("resetBtn"),
       newBtn: $("newBtn"),
       refreshBtn: $("refreshBtn"),
+      calendarBtn: $("calendarBtn"),
       lookupItemBtn: $("lookupItemBtn"),
       loadProductDbBtn: $("loadProductDbBtn"),
       openSupabaseBtn: $("openSupabaseBtn"),
@@ -648,6 +827,13 @@
       changeCount: $("changeCount"),
       etcCount: $("etcCount"),
       viewCount: $("viewCount"),
+      calendarModal: $("calendarModal"),
+      calendarTitle: $("calendarTitle"),
+      calendarGrid: $("calendarGrid"),
+      prevMonthBtn: $("prevMonthBtn"),
+      todayBtn: $("todayBtn"),
+      nextMonthBtn: $("nextMonthBtn"),
+      closeCalendarBtn: $("closeCalendarBtn"),
       toast: $("toast")
     };
 
@@ -711,9 +897,18 @@
       els.resetBtn.addEventListener("click", resetMainForm);
       els.newBtn.addEventListener("click", resetMainForm);
       els.refreshBtn.addEventListener("click", fetchEntries);
+      els.calendarBtn.addEventListener("click", openCalendar);
       els.lookupItemBtn.addEventListener("click", () => lookupProductItem(true));
       els.loadProductDbBtn.addEventListener("click", loadProductDbList);
       els.openSupabaseBtn.addEventListener("click", openSupabaseTable);
+
+      els.prevMonthBtn.addEventListener("click", () => moveCalendarMonth(-1));
+      els.todayBtn.addEventListener("click", goCalendarToday);
+      els.nextMonthBtn.addEventListener("click", () => moveCalendarMonth(1));
+      els.closeCalendarBtn.addEventListener("click", closeCalendar);
+      els.calendarModal.addEventListener("click", (e) => {
+        if (e.target === els.calendarModal) closeCalendar();
+      });
 
       fields.brand.addEventListener("change", handleBrandChange);
       productFields.brand.addEventListener("change", handleProductDbBrandChange);
@@ -795,6 +990,7 @@
       entries = data || [];
       populateYearOptions();
       render();
+      if (els.calendarModal.classList.contains("open")) renderCalendar();
     }
 
     async function lookupProductItem(showNotFound) {
@@ -1153,6 +1349,7 @@
       fields.relatedModel.value = item.related_model || "";
       fields.etcPrice.value = item.etc_price || "";
 
+      closeCalendar();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -1269,6 +1466,146 @@
       });
     }
 
+    function openCalendar() {
+      calendarDate = getCalendarInitialDate();
+      els.calendarModal.classList.add("open");
+      renderCalendar();
+    }
+
+    function closeCalendar() {
+      els.calendarModal.classList.remove("open");
+    }
+
+    function getCalendarInitialDate() {
+      const year = els.filterYear.value !== "all" ? Number(els.filterYear.value) : new Date().getFullYear();
+      const month = els.filterMonth.value !== "all" ? Number(els.filterMonth.value) - 1 : new Date().getMonth();
+      return new Date(year, month, 1);
+    }
+
+    function moveCalendarMonth(diff) {
+      calendarDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + diff, 1);
+      renderCalendar();
+    }
+
+    function goCalendarToday() {
+      calendarDate = new Date();
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      const year = calendarDate.getFullYear();
+      const month = calendarDate.getMonth();
+      els.calendarTitle.textContent = `${year}-${String(month + 1).padStart(2, "0")}`;
+
+      const firstDay = new Date(year, month, 1);
+      const startDate = new Date(year, month, 1 - firstDay.getDay());
+      const today = todayString();
+
+      els.calendarGrid.innerHTML = "";
+
+      for (let i = 0; i < 42; i++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+
+        const dateStr = toDateStringLocal(date);
+        const isOtherMonth = date.getMonth() !== month;
+        const isToday = dateStr === today;
+        const dayEvents = getEventsForDate(dateStr);
+
+        const cell = document.createElement("div");
+        cell.className = `calendar-cell${isOtherMonth ? " other-month" : ""}${isToday ? " today" : ""}`;
+
+        const day = date.getDate();
+        const isSun = date.getDay() === 0;
+        const isSat = date.getDay() === 6;
+
+        cell.innerHTML = `
+          <div class="calendar-date">
+            <span style="${isSun ? "color:#dc2626" : isSat ? "color:#2563eb" : ""}">${day}</span>
+            ${isToday ? '<span class="holiday">오늘</span>' : ""}
+          </div>
+        `;
+
+        dayEvents.forEach(item => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = `cal-event ${brandColorClass(item.brand)}`;
+          btn.title = calendarEventText(item, false);
+          btn.textContent = calendarEventText(item, true);
+          btn.addEventListener("click", () => editEntry(item.id));
+          cell.appendChild(btn);
+        });
+
+        els.calendarGrid.appendChild(cell);
+      }
+    }
+
+    function getEventsForDate(dateStr) {
+      return entries.filter(item => {
+        const range = getItemDateRange(item);
+        return range.start && range.end && dateStr >= range.start && dateStr <= range.end;
+      }).sort((a, b) => {
+        const order = { event: 1, model_change: 2, etc: 3 };
+        return (order[a.type] || 9) - (order[b.type] || 9);
+      });
+    }
+
+    function getItemDateRange(item) {
+      if (item.type === "event") {
+        const start = item.event_start || item.base_date;
+        const end = item.event_end || start;
+        return normalizeDateRange(start, end);
+      }
+
+      if (item.type === "model_change") {
+        const start = item.apply_date || item.base_date;
+        return normalizeDateRange(start, start);
+      }
+
+      if (item.type === "etc") {
+        const start = item.etc_start || item.base_date;
+        const end = item.etc_end || start;
+        return normalizeDateRange(start, end);
+      }
+
+      return { start: null, end: null };
+    }
+
+    function normalizeDateRange(start, end) {
+      if (!start && !end) return { start: null, end: null };
+      let s = start || end;
+      let e = end || start;
+      if (s > e) [s, e] = [e, s];
+      return { start: s, end: e };
+    }
+
+    function calendarEventText(item, short) {
+      const label = typeLabel(item.type);
+      const brand = brandText(item);
+      let title = "";
+
+      if (item.type === "event") title = item.event_name || item.event_model || "행사";
+      if (item.type === "model_change") title = item.change_title || item.after_model || item.before_model || "모델 변경";
+      if (item.type === "etc") title = item.etc_title || item.etc_category || "기타";
+
+      if (short) return `[${label}] ${brand} ${title}`;
+      return `[${label}] ${brand} / ${title}\n${item.note || ""}`;
+    }
+
+    function brandColorClass(brand) {
+      if (brand === "삼성") return "cal-samsung";
+      if (brand === "LG") return "cal-lg";
+      if (brand === "기타") return "cal-etcbrand";
+      return "cal-none";
+    }
+
+    function typeLabel(type) {
+      if (type === "event") return "행사";
+      if (type === "model_change") return "모델변경";
+      if (type === "etc") return "기타";
+      return "기록";
+    }
+
     function brandText(item) {
       if (item.brand === "기타" && item.brand_detail) return `기타(${item.brand_detail})`;
       return item.brand || "-";
@@ -1363,10 +1700,13 @@
     }
 
     function todayString() {
-      const now = new Date();
-      const yyyy = now.getFullYear();
-      const mm = String(now.getMonth() + 1).padStart(2, "0");
-      const dd = String(now.getDate()).padStart(2, "0");
+      return toDateStringLocal(new Date());
+    }
+
+    function toDateStringLocal(date) {
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, "0");
+      const dd = String(date.getDate()).padStart(2, "0");
       return `${yyyy}-${mm}-${dd}`;
     }
 
