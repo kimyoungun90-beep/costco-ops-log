@@ -400,17 +400,56 @@
           <div id="etcFields" class="hidden">
             <div class="field">
               <label for="etcTitle">기타 제목</label>
-              <input type="text" id="etcTitle" placeholder="예: 진열 위치 변경 / 가격표 수정 / 행사 미확정 공유" />
+              <input type="text" id="etcTitle" placeholder="예: 인력 변동 / 점포 오픈 / 폐점 / 진열 위치 변경 / 운영 공지" />
             </div>
+
             <div class="two-col">
+              <div class="field">
+                <label for="etcCategory">기타 구분</label>
+                <select id="etcCategory">
+                  <option value="">선택</option>
+                  <option value="인력변동">인력변동</option>
+                  <option value="점포오픈">점포오픈</option>
+                  <option value="점포폐점">점포폐점</option>
+                  <option value="운영공지">운영공지</option>
+                  <option value="진열변경">진열변경</option>
+                  <option value="가격/라벨">가격/라벨</option>
+                  <option value="입고/재고">입고/재고</option>
+                  <option value="VOC/클레임">VOC/클레임</option>
+                  <option value="기타">기타</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="relatedStore">관련 점포</label>
+                <input type="text" id="relatedStore" placeholder="예: 대구점 / 대전점 / 전점" />
+              </div>
+            </div>
+
+            <div class="two-col">
+              <div class="field">
+                <label for="etcStart">적용 시작일</label>
+                <input type="date" id="etcStart" />
+              </div>
+              <div class="field">
+                <label for="etcEnd">적용 종료일</label>
+                <input type="date" id="etcEnd" />
+              </div>
+            </div>
+
+            <div class="two-col">
+              <div class="field">
+                <label for="relatedTarget">관련 대상</label>
+                <input type="text" id="relatedTarget" placeholder="예: 김OO / CE / MX / 전직원" />
+              </div>
               <div class="field">
                 <label for="relatedModel">관련 모델</label>
                 <input type="text" id="relatedModel" placeholder="관련 모델이 있으면 입력" />
               </div>
-              <div class="field">
-                <label for="etcPrice">관련 가격</label>
-                <input type="text" inputmode="numeric" id="etcPrice" placeholder="가격이 있으면 입력" />
-              </div>
+            </div>
+
+            <div class="field">
+              <label for="etcPrice">관련 가격</label>
+              <input type="text" inputmode="numeric" id="etcPrice" placeholder="가격이 있으면 입력" />
             </div>
           </div>
 
@@ -628,6 +667,11 @@
       applyDate: $("applyDate"),
       salePrice: $("salePrice"),
       etcTitle: $("etcTitle"),
+      etcCategory: $("etcCategory"),
+      relatedStore: $("relatedStore"),
+      etcStart: $("etcStart"),
+      etcEnd: $("etcEnd"),
+      relatedTarget: $("relatedTarget"),
       relatedModel: $("relatedModel"),
       etcPrice: $("etcPrice"),
       note: $("note")
@@ -836,6 +880,11 @@
         sale_price: null,
 
         etc_title: null,
+        etc_category: null,
+        related_store: null,
+        etc_start: null,
+        etc_end: null,
+        related_target: null,
         related_model: null,
         etc_price: null
       };
@@ -869,11 +918,16 @@
 
       if (type === "etc") {
         payload.etc_title = fields.etcTitle.value.trim();
+        payload.etc_category = fields.etcCategory.value;
+        payload.related_store = fields.relatedStore.value.trim();
+        payload.etc_start = fields.etcStart.value || null;
+        payload.etc_end = fields.etcEnd.value || null;
+        payload.related_target = fields.relatedTarget.value.trim();
         payload.related_model = fields.relatedModel.value.trim();
         payload.etc_price = toNumberOrNull(fields.etcPrice.value);
 
-        if (!payload.etc_title && !payload.related_model && !payload.note) {
-          showToast("기타 제목, 관련 모델 또는 상세 내용을 입력해주세요.");
+        if (!payload.etc_title && !payload.etc_category && !payload.related_store && !payload.related_target && !payload.related_model && !payload.note) {
+          showToast("기타 제목, 구분, 점포, 대상 또는 상세 내용을 입력해주세요.");
           return;
         }
       }
@@ -1091,6 +1145,11 @@
       fields.salePrice.value = item.sale_price || "";
 
       fields.etcTitle.value = item.etc_title || "";
+      fields.etcCategory.value = item.etc_category || "";
+      fields.relatedStore.value = item.related_store || "";
+      fields.etcStart.value = item.etc_start || "";
+      fields.etcEnd.value = item.etc_end || "";
+      fields.relatedTarget.value = item.related_target || "";
       fields.relatedModel.value = item.related_model || "";
       fields.etcPrice.value = item.etc_price || "";
 
@@ -1172,6 +1231,11 @@
             item.before_model,
             item.after_model,
             item.etc_title,
+            item.etc_category,
+            item.related_store,
+            item.etc_start,
+            item.etc_end,
+            item.related_target,
             item.related_model,
             item.note
           ].join(" ").toLowerCase().includes(keyword);
@@ -1213,7 +1277,11 @@
     function mainTitle(item) {
       if (item.type === "event") return item.event_name || "-";
       if (item.type === "model_change") return item.change_title || "-";
-      if (item.type === "etc") return item.etc_title || "-";
+      if (item.type === "etc") {
+        const category = item.etc_category ? `[${item.etc_category}] ` : "";
+        const store = item.related_store ? ` / ${item.related_store}` : "";
+        return `${category}${item.etc_title || "-"}${store}`;
+      }
       return "-";
     }
 
@@ -1224,7 +1292,11 @@
         const after = item.after_model ? `변경: ${escapeHtml(item.after_model)}` : "";
         return `<div class="memo"><strong>${[before, after].filter(Boolean).join("<br>") || "-"}</strong></div>`;
       }
-      if (item.type === "etc") return `<strong>${escapeHtml(item.related_model || "-")}</strong>`;
+      if (item.type === "etc") {
+        const target = item.related_target ? `대상: ${escapeHtml(item.related_target)}` : "";
+        const model = item.related_model ? `모델: ${escapeHtml(item.related_model)}` : "";
+        return `<div class="memo"><strong>${[target, model].filter(Boolean).join("<br>") || "-"}</strong></div>`;
+      }
       return "-";
     }
 
@@ -1250,6 +1322,10 @@
         return `${formatDate(item.event_start)} ~ ${formatDate(item.event_end)}`;
       }
       if (item.type === "model_change") return item.apply_date ? `적용 ${formatDate(item.apply_date)}` : "-";
+      if (item.type === "etc") {
+        if (!item.etc_start && !item.etc_end) return "-";
+        return `${formatDate(item.etc_start)} ~ ${formatDate(item.etc_end)}`;
+      }
       return "-";
     }
 
@@ -1275,6 +1351,7 @@
     function getBaseDateByType(type) {
       if (type === "event") return fields.eventStart.value || fields.eventEnd.value || todayString();
       if (type === "model_change") return fields.applyDate.value || todayString();
+      if (type === "etc") return fields.etcStart.value || fields.etcEnd.value || todayString();
       return todayString();
     }
 
