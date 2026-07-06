@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -1035,6 +1036,33 @@
       if (els.calendarModal.classList.contains("open")) renderCalendar();
     }
 
+    function mergeEntryLocally(savedItem) {
+      const index = entries.findIndex(item => item.id === savedItem.id);
+
+      if (index >= 0) {
+        entries[index] = savedItem;
+      } else {
+        entries.unshift(savedItem);
+      }
+
+      populateYearOptions();
+      render();
+
+      if (els.calendarModal.classList.contains("open")) {
+        renderCalendar();
+      }
+    }
+
+    function removeEntryLocally(id) {
+      entries = entries.filter(item => item.id !== id);
+      populateYearOptions();
+      render();
+
+      if (els.calendarModal.classList.contains("open")) {
+        renderCalendar();
+      }
+    }
+
     async function lookupProductItem(showNotFound) {
       if (!supabase) return;
       const itemNo = fields.productItemNo.value.trim();
@@ -1164,6 +1192,11 @@
         payload.related_model = fields.relatedModel.value.trim();
         payload.etc_price = toNumberOrNull(fields.etcPrice.value);
 
+        if (payload.etc_category === "진열삭제" && !payload.product_item_no) {
+          showToast("진열삭제(소진)는 코스트코 아이템번호를 입력해야 합니다.");
+          return;
+        }
+
         if (!payload.etc_title && !payload.etc_category && !payload.related_store && !payload.related_target && !payload.related_model && !payload.note) {
           showToast("행사 및 기타 제목, 구분, 점포, 대상 또는 상세 내용을 입력해주세요.");
           return;
@@ -1189,11 +1222,16 @@
         return;
       }
 
-      if (result.data) await sendToSheetBridge("upsertLog", result.data);
-      await upsertProductItem(payload);
-      showToast(editId ? "수정되었습니다." : "저장되었습니다.");
+      if (result.data) {
+        sendToSheetBridge("upsertLog", result.data);
+        mergeEntryLocally(result.data);
+      }
+
+      // 아이템DB/구글시트 반영은 뒤에서 처리하고, 웹앱 저장은 바로 끝냅니다.
+      upsertProductItem(payload);
+
+      showToast(editId ? "수정되었습니다. 시트 반영은 뒤에서 진행됩니다." : "저장되었습니다. 시트 반영은 뒤에서 진행됩니다.");
       resetMainForm();
-      await fetchEntries();
     }
 
     async function upsertProductItem(payload) {
@@ -1212,7 +1250,7 @@
 
       const { error } = await supabase.from(PRODUCT_TABLE).upsert(productPayload, { onConflict: "item_no" });
 
-      if (!error) await sendToSheetBridge("upsertProduct", productPayload);
+      if (!error) sendToSheetBridge("upsertProduct", productPayload);
 
       if (error) {
         console.error(error);
@@ -1254,7 +1292,7 @@
 
       const { error } = await supabase.from(PRODUCT_TABLE).upsert(productPayload, { onConflict: "item_no" });
 
-      if (!error) await sendToSheetBridge("upsertProduct", productPayload);
+      if (!error) sendToSheetBridge("upsertProduct", productPayload);
 
       if (error) {
         console.error(error);
@@ -1334,8 +1372,8 @@
         return;
       }
 
-      await sendToSheetBridge("deleteProduct", { item_no: itemNo });
-      showToast("아이템번호 DB에서 삭제되었습니다.");
+      sendToSheetBridge("deleteProduct", { item_no: itemNo });
+      showToast("아이템번호 DB에서 삭제되었습니다. 시트 반영은 뒤에서 진행됩니다.");
       await loadProductDbList();
     }
 
@@ -1417,9 +1455,9 @@
         return;
       }
 
-      await sendToSheetBridge("deleteLog", { id });
-      showToast("삭제되었습니다.");
-      await fetchEntries();
+      sendToSheetBridge("deleteLog", { id });
+      removeEntryLocally(id);
+      showToast("삭제되었습니다. 시트 반영은 뒤에서 진행됩니다.");
     }
 
     function resetMainForm() {
@@ -1829,22 +1867,33 @@
     }
 
 
-    async function sendToSheetBridge(action, data) {
-      if (!SHEET_BRIDGE_URL || SHEET_BRIDGE_URL.includes("여기에_")) return;
+    function sendToSheetBridge(action, data) {
+      if (!SHEET_BRIDGE_URL || SHEET_BRIDGE_URL.includes("여기에_")) return Promise.resolve();
+
+      const body = JSON.stringify({
+        secret: SHEET_BRIDGE_SECRET,
+        action,
+        data
+      });
 
       try {
-        await fetch(SHEET_BRIDGE_URL, {
+        if (navigator.sendBeacon) {
+          const blob = new Blob([body], { type: "text/plain;charset=UTF-8" });
+          navigator.sendBeacon(SHEET_BRIDGE_URL, blob);
+          return Promise.resolve();
+        }
+
+        fetch(SHEET_BRIDGE_URL, {
           method: "POST",
           mode: "no-cors",
-          body: JSON.stringify({
-            secret: SHEET_BRIDGE_SECRET,
-            action,
-            data
-          })
-        });
+          keepalive: true,
+          body
+        }).catch(err => console.error("Sheet bridge error", err));
       } catch (err) {
         console.error("Sheet bridge error", err);
       }
+
+      return Promise.resolve();
     }
 
     window.editEntry = editEntry;
