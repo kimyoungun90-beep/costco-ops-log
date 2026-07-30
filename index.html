@@ -953,6 +953,7 @@
       });
 
       fields.brand.addEventListener("change", handleBrandChange);
+      fields.etcCategory.addEventListener("change", handleEtcCategoryMode);
       productFields.brand.addEventListener("change", handleProductDbBrandChange);
 
       fields.productItemNo.addEventListener("input", () => {
@@ -994,6 +995,89 @@
       if (isEtc) productFields.brandDetail.focus();
     }
 
+    function setFieldVisible(input, visible) {
+      const field = input.closest(".field");
+      const wrapper = input.closest(".two-col");
+      if (field) field.classList.toggle("hidden", !visible);
+
+      if (wrapper) {
+        const visibleChildren = Array.from(wrapper.children).some(child => !child.classList.contains("hidden"));
+        wrapper.classList.toggle("hidden", !visibleChildren);
+      }
+    }
+
+    function setLabel(input, text) {
+      const label = document.querySelector(`label[for="${input.id}"]`);
+      if (label) label.textContent = text;
+    }
+
+    function handleEtcCategoryMode() {
+      if (els.entryType.value !== "etc") return;
+
+      const category = fields.etcCategory.value;
+      const isModelIn = category === "모델입고";
+      const isModelOut = category === "모델철수";
+
+      // 기본은 전체 표시
+      [
+        fields.etcTitle,
+        fields.relatedStore,
+        fields.etcStart,
+        fields.etcEnd,
+        fields.relatedTarget,
+        fields.relatedModel,
+        fields.etcPrice,
+        fields.note
+      ].forEach(input => setFieldVisible(input, true));
+
+      setLabel(fields.etcTitle, "행사 및 기타 제목");
+      setLabel(fields.relatedStore, "관련 점포");
+      setLabel(fields.etcStart, "적용 시작일");
+      setLabel(fields.etcEnd, "적용 종료일");
+      setLabel(fields.relatedTarget, "관련 대상");
+      setLabel(fields.relatedModel, "관련 모델");
+      setLabel(fields.etcPrice, "금액");
+      fields.relatedTarget.placeholder = "예: CE / MX / 전직원 / 해당 없음";
+      fields.relatedModel.placeholder = "관련 모델명 입력";
+      fields.etcPrice.placeholder = "필요 시 금액 입력";
+
+      if (isModelIn) {
+        els.formTitle.textContent = "모델입고 등록";
+        setFieldVisible(fields.etcTitle, false);
+        setFieldVisible(fields.relatedStore, false);
+        setFieldVisible(fields.etcEnd, false);
+        setFieldVisible(fields.note, true);
+
+        setLabel(fields.etcStart, "입고 일자");
+        setLabel(fields.relatedTarget, "품목");
+        setLabel(fields.relatedModel, "모델명");
+        setLabel(fields.etcPrice, "기본 가격");
+
+        fields.relatedTarget.placeholder = "예: TV / 냉장고 / 세탁·건조 / 에어컨";
+        fields.relatedModel.placeholder = "예: KQ75QNH70AFXKR";
+        fields.etcPrice.placeholder = "예: 1299000";
+        fields.etcTitle.value = fields.etcTitle.value || "모델 입고";
+        return;
+      }
+
+      if (isModelOut) {
+        els.formTitle.textContent = "모델철수 등록";
+        setFieldVisible(fields.etcTitle, false);
+        setFieldVisible(fields.relatedStore, false);
+        setFieldVisible(fields.etcEnd, false);
+        setFieldVisible(fields.relatedTarget, false);
+        setFieldVisible(fields.relatedModel, false);
+        setFieldVisible(fields.etcPrice, false);
+        setFieldVisible(fields.note, false);
+
+        setLabel(fields.etcStart, "철수 일자");
+        fields.etcTitle.value = fields.etcTitle.value || "모델 철수";
+        return;
+      }
+
+      els.formTitle.textContent = "행사 및 기타 등록";
+    }
+
     function setType(type) {
       currentType = type;
       els.entryType.value = type;
@@ -1003,15 +1087,15 @@
       });
 
       els.eventFields.classList.toggle("hidden", type !== "event");
-      els.modelChangeFields.classList.toggle("hidden", type !== "model_change");
+      els.modelChangeFields.classList.toggle("hidden", true);
       els.etcFields.classList.toggle("hidden", type !== "etc");
 
       const titleMap = {
         event: "IRC 등록",
-        model_change: "모델 변경 등록",
         etc: "행사 및 기타 등록"
       };
       els.formTitle.textContent = titleMap[type] || "등록";
+      handleEtcCategoryMode();
     }
 
     async function fetchEntries() {
@@ -1112,7 +1196,10 @@
       const productItemNo = fields.productItemNo.value.trim();
       const baseDate = getBaseDateByType(type);
 
-      if (!brand) {
+      const selectedEtcCategory = fields.etcCategory.value;
+      const brandOptional = type === "etc" && selectedEtcCategory === "모델철수";
+
+      if (!brand && !brandOptional) {
         showToast("브랜드는 필수입니다.");
         return;
       }
@@ -1191,14 +1278,53 @@
         payload.related_model = fields.relatedModel.value.trim();
         payload.etc_price = toNumberOrNull(fields.etcPrice.value);
 
-        if (["모델입고", "모델철수"].includes(payload.etc_category) && !payload.product_item_no) {
-          showToast("모델입고/모델철수는 코스트코 아이템번호를 입력해야 합니다.");
-          return;
+        if (payload.etc_category === "모델입고") {
+          payload.etc_title = payload.etc_title || "모델 입고";
+
+          if (!payload.product_item_no) {
+            showToast("모델입고는 코스트코 아이템번호를 입력해야 합니다.");
+            return;
+          }
+
+          if (!payload.related_target) {
+            showToast("모델입고는 품목을 입력해야 합니다.");
+            return;
+          }
+
+          if (!payload.related_model) {
+            showToast("모델입고는 모델명을 입력해야 합니다.");
+            return;
+          }
+
+          if (!payload.etc_price) {
+            showToast("모델입고는 기본 가격을 입력해야 합니다.");
+            return;
+          }
+
+          if (!payload.etc_start) {
+            showToast("모델입고는 입고 일자를 입력해야 합니다.");
+            return;
+          }
         }
 
-        if (payload.etc_category === "모델입고" && !payload.related_model) {
-          showToast("모델입고는 관련 모델명을 입력해야 합니다.");
-          return;
+        if (payload.etc_category === "모델철수") {
+          payload.etc_title = payload.etc_title || "모델 철수";
+          payload.related_store = null;
+          payload.etc_end = null;
+          payload.related_target = null;
+          payload.related_model = null;
+          payload.etc_price = null;
+          payload.note = null;
+
+          if (!payload.product_item_no) {
+            showToast("모델철수는 코스트코 아이템번호를 입력해야 합니다.");
+            return;
+          }
+
+          if (!payload.etc_start) {
+            showToast("모델철수는 철수 일자를 입력해야 합니다.");
+            return;
+          }
         }
 
         if (!payload.etc_title && !payload.etc_category && !payload.related_store && !payload.related_target && !payload.related_model && !payload.note) {
@@ -1436,6 +1562,7 @@
 
       fields.etcTitle.value = item.etc_title || "";
       fields.etcCategory.value = item.etc_category || "";
+      handleEtcCategoryMode();
       fields.relatedStore.value = item.related_store || "";
       fields.etcStart.value = item.etc_start || "";
       fields.etcEnd.value = item.etc_end || "";
