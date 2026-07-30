@@ -122,7 +122,7 @@
 
     .tabs {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 8px;
       background: #eef2f7;
       padding: 6px;
@@ -472,7 +472,7 @@
     <div class="topbar">
       <div>
         <h1>코스트코 운영 기록부</h1>
-        <p class="desc">IRC / 모델 변경 / 행사 및 기타 이력을 공용 DB에 저장합니다. 코스트코 아이템번호를 입력하면 등록된 DB 기준으로 브랜드와 모델명이 자동 입력됩니다.</p>
+        <p class="desc">IRC / 행사 및 기타 이력을 공용 DB에 저장합니다. 코스트코 아이템번호를 입력하면 등록된 DB 기준으로 브랜드와 모델명이 자동 입력됩니다.</p>
       </div>
       <div class="top-actions">
         <button class="btn-light" id="refreshBtn" type="button">새로고침</button>
@@ -493,7 +493,6 @@
 
         <div class="tabs">
           <button class="tab active" type="button" data-type="event">IRC</button>
-          <button class="tab" type="button" data-type="model_change">모델 변경</button>
           <button class="tab" type="button" data-type="etc">행사 및 기타</button>
         </div>
 
@@ -585,22 +584,23 @@
 
           <div id="etcFields" class="hidden">
             <div class="field">
-              <label for="etcTitle">기타 제목</label>
-              <input type="text" id="etcTitle" placeholder="예: 인력 변동 / 점포 오픈 / 폐점 / 진열 위치 변경 / 진열 소진 / 운영 공지" />
+              <label for="etcTitle">행사 및 기타 제목</label>
+              <input type="text" id="etcTitle" placeholder="예: 모델 입고 / 모델 철수 / 인력 변동 / 점포 오픈 / 운영 공지" />
             </div>
 
             <div class="two-col">
               <div class="field">
-                <label for="etcCategory">기타 구분</label>
+                <label for="etcCategory">행사 및 기타 구분</label>
                 <select id="etcCategory">
                   <option value="">선택</option>
                   <option value="행사">행사</option>
+                  <option value="모델입고">모델입고</option>
+                  <option value="모델철수">모델철수</option>
                   <option value="인력변동">인력변동</option>
                   <option value="점포오픈">점포오픈</option>
                   <option value="점포폐점">점포폐점</option>
                   <option value="운영공지">운영공지</option>
                   <option value="진열변경">진열변경</option>
-                  <option value="진열삭제">진열삭제(소진)</option>
                   <option value="가격/라벨">가격/라벨</option>
                   <option value="입고/재고">입고/재고</option>
                   <option value="VOC/클레임">VOC/클레임</option>
@@ -627,17 +627,17 @@
             <div class="two-col">
               <div class="field">
                 <label for="relatedTarget">관련 대상</label>
-                <input type="text" id="relatedTarget" placeholder="예: 김OO / CE / MX / 전직원" />
+                <input type="text" id="relatedTarget" placeholder="예: CE / MX / 전직원 / 해당 없음" />
               </div>
               <div class="field">
                 <label for="relatedModel">관련 모델</label>
-                <input type="text" id="relatedModel" placeholder="관련 모델이 있으면 입력" />
+                <input type="text" id="relatedModel" placeholder="모델입고/모델철수 시 모델명 입력" />
               </div>
             </div>
 
             <div class="field">
-              <label for="etcPrice">관련 가격</label>
-              <input type="text" inputmode="numeric" id="etcPrice" placeholder="가격이 있으면 입력" />
+              <label for="etcPrice">기본 가격</label>
+              <input type="text" inputmode="numeric" id="etcPrice" placeholder="모델입고 시 기본 가격 입력" />
             </div>
           </div>
 
@@ -719,7 +719,7 @@
           <div class="summary-row">
             <div class="summary-box"><strong id="totalCount">0</strong><span>전체 등록</span></div>
             <div class="summary-box"><strong id="eventCount">0</strong><span>IRC</span></div>
-            <div class="summary-box"><strong id="changeCount">0</strong><span>모델 변경</span></div>
+            <div class="summary-box"><strong id="changeCount">0</strong><span>입고/철수</span></div>
             <div class="summary-box"><strong id="etcCount">0</strong><span>행사 및 기타</span></div>
             <div class="summary-box"><strong id="viewCount">0</strong><span>현재 조회</span></div>
           </div>
@@ -728,7 +728,6 @@
             <select id="filterType">
               <option value="all">전체 구분</option>
               <option value="event">IRC</option>
-              <option value="model_change">모델 변경</option>
               <option value="etc">행사 및 기타</option>
             </select>
             <select id="filterBrand">
@@ -1192,8 +1191,13 @@
         payload.related_model = fields.relatedModel.value.trim();
         payload.etc_price = toNumberOrNull(fields.etcPrice.value);
 
-        if (payload.etc_category === "진열삭제" && !payload.product_item_no) {
-          showToast("진열삭제(소진)는 코스트코 아이템번호를 입력해야 합니다.");
+        if (["모델입고", "모델철수"].includes(payload.etc_category) && !payload.product_item_no) {
+          showToast("모델입고/모델철수는 코스트코 아이템번호를 입력해야 합니다.");
+          return;
+        }
+
+        if (payload.etc_category === "모델입고" && !payload.related_model) {
+          showToast("모델입고는 관련 모델명을 입력해야 합니다.");
           return;
         }
 
@@ -1487,7 +1491,7 @@
       const filtered = getFilteredEntries();
       els.totalCount.textContent = entries.length;
       els.eventCount.textContent = entries.filter(x => x.type === "event").length;
-      els.changeCount.textContent = entries.filter(x => x.type === "model_change").length;
+      els.changeCount.textContent = entries.filter(x => x.type === "model_change" || (x.type === "etc" && ["모델입고","모델철수","진열삭제"].includes(x.etc_category))).length;
       els.etcCount.textContent = entries.filter(x => x.type === "etc").length;
       els.viewCount.textContent = filtered.length;
       renderTable(filtered);
