@@ -1,394 +1,189 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>코스트코 운영 기록 사이트</title>
+  <title>COSTCO 운영 기록부 Fresh</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --navy: #061a38;
       --navy2: #0b2d5f;
       --blue: #0b66e4;
-      --blue2: #2563eb;
       --red: #d4143b;
       --green: #10b981;
       --amber: #f59e0b;
       --purple: #8b5cf6;
       --bg: #f4f7fb;
       --card: #ffffff;
-      --line: #dbe3ef;
+      --line: #dbe4f0;
       --text: #0f172a;
       --muted: #64748b;
-      --soft-blue: #eaf3ff;
-      --soft-red: #fff1f2;
-      --soft-green: #ecfdf5;
-      --soft-amber: #fffbeb;
       --shadow: 0 14px 34px rgba(15, 23, 42, .08);
       --radius: 18px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", Arial, sans-serif;
     }
-
-    button,
-    input,
-    select,
-    textarea {
-      font: inherit;
-    }
-
-    button {
-      cursor: pointer;
-    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
 
     .app {
       min-height: 100vh;
       display: grid;
-      grid-template-columns: 260px 1fr;
+      grid-template-columns: 240px 1fr;
     }
 
-    .sidebar {
-      background: linear-gradient(180deg, #031a3b 0%, #072b5d 58%, #061a38 100%);
-      color: #fff;
-      padding: 22px 18px;
+    .side {
       position: sticky;
       top: 0;
       height: 100vh;
-      overflow-y: auto;
+      padding: 22px 16px;
+      background: linear-gradient(180deg, #061a38, #082b5c);
+      color: #fff;
     }
 
     .logo {
       display: flex;
-      align-items: center;
       gap: 12px;
-      padding: 8px 8px 26px;
+      align-items: center;
+      margin-bottom: 26px;
+      padding: 6px;
     }
 
     .logo-mark {
-      width: 46px;
-      height: 46px;
+      width: 48px;
+      height: 48px;
       border-radius: 14px;
       background: #fff;
+      color: var(--red);
       display: grid;
       place-items: center;
-      color: var(--red);
-      font-weight: 900;
-      letter-spacing: -.06em;
+      font-weight: 1000;
     }
 
-    .logo strong {
-      display: block;
-      font-size: 19px;
-      letter-spacing: -.04em;
-    }
+    .logo strong { display: block; font-size: 18px; }
+    .logo span { display: block; margin-top: 2px; font-size: 12px; color: #bdd3f2; font-weight: 800; }
 
-    .logo span {
-      display: block;
-      color: #bcd0ec;
-      font-size: 12px;
-      margin-top: 2px;
-    }
-
-    .nav {
-      display: grid;
-      gap: 7px;
-    }
-
-    .nav button {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      width: 100%;
+    .menu { display: grid; gap: 8px; }
+    .menu button {
       border: 0;
-      border-radius: 13px;
-      padding: 14px 15px;
-      color: #dce8fb;
       background: transparent;
+      color: #d9e8ff;
       text-align: left;
-      font-weight: 700;
+      border-radius: 14px;
+      padding: 14px 15px;
+      font-weight: 900;
     }
+    .menu button.active, .menu button:hover { background: rgba(255,255,255,.13); color: #fff; }
 
-    .nav button.active,
-    .nav button:hover {
-      background: rgba(255, 255, 255, .12);
-      color: #fff;
-    }
-
-    .help-card {
+    .guide {
       margin-top: 34px;
-      padding: 18px;
       border-radius: 18px;
       background: rgba(255,255,255,.12);
-      color: #dce8fb;
+      padding: 18px;
+      line-height: 1.55;
+      color: #e5efff;
       font-size: 13px;
-      line-height: 1.45;
+      font-weight: 750;
     }
 
-    .main {
-      min-width: 0;
-      padding: 22px 26px 34px;
-    }
-
-    .topbar {
-      display: grid;
-      grid-template-columns: 1fr minmax(260px, 480px) auto;
-      gap: 18px;
-      align-items: center;
-      margin-bottom: 18px;
-    }
-
-    .title h1 {
-      margin: 0;
-      font-size: 30px;
-      letter-spacing: -.04em;
-    }
-
-    .title p {
-      margin: 7px 0 0;
-      color: var(--muted);
-      font-weight: 700;
-    }
-
-    .search-global {
-      position: relative;
-    }
-
-    .search-global input {
-      width: 100%;
-      height: 48px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 0 46px 0 44px;
-      outline: none;
-      background: #fff;
-      font-weight: 700;
-    }
-
-    .search-global span {
-      position: absolute;
-      left: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--muted);
-    }
-
-    .top-actions {
+    .main { padding: 24px 28px 36px; min-width: 0; }
+    .top {
       display: flex;
-      gap: 10px;
-      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+      align-items: flex-start;
     }
 
-    .icon-btn,
-    .primary-btn,
-    .ghost-btn,
-    .danger-btn {
+    h1 { margin: 0; font-size: 30px; letter-spacing: -.05em; }
+    .sub { margin: 7px 0 0; color: var(--muted); font-weight: 800; }
+
+    .btn {
       border: 0;
-      border-radius: 13px;
-      font-weight: 900;
-      height: 46px;
+      height: 44px;
       padding: 0 18px;
+      border-radius: 13px;
+      font-weight: 1000;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 7px;
+      white-space: nowrap;
     }
-
-    .primary-btn {
-      background: linear-gradient(135deg, #0b66e4, #0147b7);
+    .btn.primary {
+      background: linear-gradient(135deg, #0b66e4, #0648b2);
       color: #fff;
-      box-shadow: 0 8px 18px rgba(37, 99, 235, .25);
+      box-shadow: 0 8px 18px rgba(11,102,228,.25);
     }
+    .btn.ghost { background: #fff; border: 1px solid var(--line); color: #15365f; }
+    .btn.red { background: var(--red); color: #fff; }
 
-    .ghost-btn {
-      background: #fff;
-      color: #0f2f60;
-      border: 1px solid var(--line);
-    }
-
-    .danger-btn {
-      background: var(--red);
-      color: #fff;
-    }
-
-    .icon-btn {
-      width: 46px;
-      padding: 0;
-      background: #fff;
-      border: 1px solid var(--line);
-    }
-
-    .grid-stats {
+    .stats {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr)) 1.5fr;
-      gap: 16px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
       margin-bottom: 18px;
     }
-
-    .stat,
-    .banner {
-      background: var(--card);
+    .stat {
+      background: #fff;
       border: 1px solid var(--line);
       border-radius: var(--radius);
+      padding: 18px;
       box-shadow: var(--shadow);
-      min-height: 118px;
-    }
-
-    .stat {
-      padding: 20px;
+      min-height: 104px;
       display: grid;
-      grid-template-columns: 44px 1fr;
-      gap: 14px;
-      align-items: center;
+      align-content: center;
     }
+    .stat small { color: #475569; font-weight: 900; }
+    .stat strong { margin-top: 7px; font-size: 28px; letter-spacing: -.04em; }
 
-    .stat .ico {
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      background: #e8f1ff;
-      color: var(--blue);
+    .grid {
       display: grid;
-      place-items: center;
-      font-size: 22px;
-    }
-
-    .stat small {
-      display: block;
-      color: #475569;
-      font-weight: 900;
-    }
-
-    .stat strong {
-      display: block;
-      margin-top: 5px;
-      font-size: 26px;
-      letter-spacing: -.03em;
-    }
-
-    .banner {
-      overflow: hidden;
-      position: relative;
-      padding: 20px 24px;
-      background:
-        linear-gradient(90deg, rgba(255,255,255,.96), rgba(255,255,255,.74)),
-        radial-gradient(circle at 85% 30%, rgba(37,99,235,.14), transparent 40%),
-        #fff;
-    }
-
-    .banner strong {
-      display: block;
-      font-size: 19px;
-      letter-spacing: -.04em;
-      margin-top: 8px;
-    }
-
-    .banner p {
-      color: var(--muted);
-      margin: 7px 0 0;
-      font-weight: 700;
-    }
-
-    .work-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(380px, .9fr);
+      grid-template-columns: minmax(0, 1.05fr) minmax(380px, .95fr);
       gap: 18px;
       align-items: start;
     }
 
     .card {
-      background: var(--card);
+      background: #fff;
       border: 1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
+      overflow: hidden;
     }
 
-    .card-header {
+    .head {
       padding: 18px 20px;
       border-bottom: 1px solid var(--line);
       display: flex;
       justify-content: space-between;
-      align-items: center;
       gap: 12px;
+      align-items: flex-start;
     }
+    .head h2 { margin: 0; font-size: 20px; letter-spacing: -.04em; }
+    .head p { margin: 6px 0 0; color: var(--muted); font-size: 13px; font-weight: 800; }
 
-    .card-header h2 {
-      margin: 0;
-      font-size: 19px;
-      letter-spacing: -.04em;
-    }
-
-    .card-header p {
-      margin: 5px 0 0;
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .stepper {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      padding: 18px 20px 0;
-    }
-
-    .step {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--muted);
-      font-weight: 900;
-      border-bottom: 3px solid #dbe4f0;
-      padding-bottom: 12px;
-    }
-
-    .step .num {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      background: #e2e8f0;
-      color: #334155;
-    }
-
-    .step.active {
-      color: #0754c8;
-      border-color: #0754c8;
-    }
-
-    .step.active .num {
-      background: #0754c8;
-      color: #fff;
-    }
-
-    .section {
-      padding: 18px 20px;
-    }
-
-    .section + .section {
-      border-top: 1px solid #eef2f7;
-    }
+    .section { padding: 18px 20px; }
+    .section + .section { border-top: 1px solid #edf2f7; }
 
     .section-title {
       display: flex;
       align-items: center;
       gap: 10px;
-      font-size: 16px;
       font-weight: 1000;
       letter-spacing: -.03em;
-      margin-bottom: 13px;
+      margin-bottom: 12px;
+      color: #0b2d5f;
     }
-
-    .section-title .badge-num {
+    .num {
       width: 30px;
       height: 30px;
       border-radius: 50%;
@@ -398,458 +193,203 @@
       place-items: center;
     }
 
-    .product-search-box {
+    .quick {
       display: grid;
-      grid-template-columns: 1fr 110px;
+      grid-template-columns: 1fr 120px;
       gap: 10px;
-      margin-bottom: 12px;
+      align-items: start;
     }
 
-    .field {
+    textarea.big {
+      width: 100%;
+      min-height: 104px;
+      padding: 14px;
+      resize: vertical;
+      line-height: 1.5;
+      border: 1px solid #d7e1ee;
+      border-radius: 14px;
+      outline: none;
+      font-weight: 800;
+    }
+
+    .examples {
+      margin-top: 9px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+      font-weight: 750;
+    }
+
+    .types {
       display: grid;
-      gap: 7px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
     }
-
-    label {
-      font-weight: 900;
-      font-size: 13px;
-      color: #17345f;
+    .type {
+      border: 1px solid #dce6f2;
+      background: #fff;
+      border-radius: 16px;
+      padding: 16px;
+      min-height: 112px;
+      text-align: left;
+      display: grid;
+      gap: 8px;
+      transition: .15s ease;
     }
+    .type:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(15,23,42,.08); }
+    .type.active { border-color: #0b66e4; box-shadow: 0 0 0 4px rgba(11,102,228,.13); }
+    .type .ico {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      background: #eef6ff;
+    }
+    .type strong { font-size: 16px; }
+    .type span { color: var(--muted); font-size: 12px; font-weight: 800; line-height: 1.35; }
 
-    input,
-    select,
-    textarea {
-      border: 1px solid #d6dfeb;
+    .panel {
+      border: 1px solid #dfe8f4;
+      border-radius: 16px;
+      background: #fbfdff;
+      padding: 16px;
+    }
+    .panel-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .panel-title strong { font-size: 17px; letter-spacing: -.04em; }
+    .hint { color: var(--muted); font-size: 12px; font-weight: 800; }
+
+    .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+    .field { display: grid; gap: 7px; }
+    label { color: #18365f; font-weight: 1000; font-size: 13px; }
+    input, select, textarea {
+      border: 1px solid #d7e1ee;
       border-radius: 12px;
       background: #fff;
       min-height: 44px;
       padding: 0 13px;
       outline: none;
       color: var(--text);
-      font-weight: 750;
+      font-weight: 800;
     }
-
     textarea {
       padding: 12px 13px;
       min-height: 76px;
-      resize: vertical;
       line-height: 1.45;
+      resize: vertical;
     }
-
-    input:focus,
-    select:focus,
-    textarea:focus {
-      border-color: #5794f6;
-      box-shadow: 0 0 0 4px rgba(37,99,235,.10);
+    input:focus, select:focus, textarea:focus {
+      border-color: #5d9af8;
+      box-shadow: 0 0 0 4px rgba(11,102,228,.10);
     }
+    input[readonly] { background: #f1f5f9; color: #334155; }
 
-    input[readonly] {
-      background: #f1f5f9;
-      color: #475569;
-    }
-
-    .selected-product {
+    .selected {
+      margin-top: 12px;
+      min-height: 82px;
       border: 1px solid #cfe1ff;
-      background: linear-gradient(135deg, #f8fbff, #edf6ff);
       border-radius: 16px;
-      padding: 14px;
+      background: linear-gradient(135deg, #f9fcff, #edf6ff);
       display: grid;
-      grid-template-columns: 74px 1fr auto;
-      gap: 14px;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      padding: 14px;
       align-items: center;
-      min-height: 104px;
     }
-
-    .selected-product .thumb {
-      width: 74px;
-      height: 74px;
-      border-radius: 14px;
-      background: #fff;
-      border: 1px solid #dbeafe;
+    .selected.empty {
       display: grid;
       place-items: center;
-      font-size: 26px;
-      color: #1d4ed8;
-    }
-
-    .selected-product dl {
-      margin: 0;
-      display: grid;
-      grid-template-columns: 70px 1fr;
-      gap: 6px 12px;
-      font-size: 13px;
-    }
-
-    .selected-product dt {
+      text-align: center;
+      border-style: dashed;
       color: var(--muted);
+      background: #f8fafc;
       font-weight: 900;
     }
+    .selected .info { display: grid; gap: 6px; font-weight: 900; }
+    .selected .info span { color: var(--muted); font-size: 12px; }
+    .selected .price { color: #073b84; font-size: 21px; font-weight: 1000; white-space: nowrap; }
 
-    .selected-product dd {
-      margin: 0;
-      font-weight: 1000;
-    }
-
-    .selected-product .price {
-      font-size: 20px;
-      color: #073b84;
-    }
-
-    .empty-selected {
-      border: 1px dashed #cbd5e1;
-      border-radius: 16px;
-      min-height: 104px;
-      display: grid;
-      place-items: center;
-      color: var(--muted);
-      font-weight: 800;
-      background: #f8fafc;
-      text-align: center;
-      padding: 16px;
-    }
-
-    .type-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-    }
-
-    .type-card {
-      border: 1px solid #dde6f2;
-      background: #fff;
-      border-radius: 16px;
-      padding: 16px;
-      min-height: 118px;
-      display: grid;
-      gap: 8px;
-      text-align: left;
-      color: #15335f;
-      transition: .15s ease;
-    }
-
-    .type-card:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 22px rgba(15,23,42,.08);
-    }
-
-    .type-card.active {
-      border-color: #1d69e6;
-      box-shadow: 0 0 0 4px rgba(37,99,235,.12);
-    }
-
-    .type-card .type-ico {
-      width: 38px;
-      height: 38px;
-      border-radius: 14px;
-      display: grid;
-      place-items: center;
-      background: #e8f1ff;
-      color: var(--blue);
-      font-size: 21px;
-    }
-
-    .type-card strong {
-      font-size: 16px;
-      letter-spacing: -.03em;
-    }
-
-    .type-card span {
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 750;
-      line-height: 1.35;
-    }
-
-    .type-card[data-type="irc"].active,
-    .type-card[data-type="irc"]:hover {
-      border-color: #0b66e4;
-    }
-
-    .type-card[data-type="in"] .type-ico {
-      background: var(--soft-green);
-      color: #059669;
-    }
-
-    .type-card[data-type="out"] .type-ico {
-      background: var(--soft-red);
-      color: var(--red);
-    }
-
-    .type-card[data-type="etc"] .type-ico {
-      background: #f3e8ff;
-      color: var(--purple);
-    }
-
-    .form-panel {
-      border: 1px solid #dfe8f4;
-      border-radius: 16px;
-      background: #fbfdff;
-      padding: 16px;
-    }
-
-    .form-title {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-
-    .form-title strong {
-      font-size: 16px;
-      letter-spacing: -.03em;
-    }
-
-    .hint {
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 750;
-    }
-
-    .grid-2 {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-
-    .grid-3 {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-    }
-
-    .grid-4 {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    .form-actions {
-      margin-top: 14px;
+    .actions {
       display: flex;
       justify-content: flex-end;
       gap: 10px;
+      margin-top: 14px;
+      flex-wrap: wrap;
     }
 
-    .records-tabs {
+    .hidden { display: none !important; }
+
+    .tabs {
       display: flex;
       gap: 8px;
       padding: 14px 16px;
       border-bottom: 1px solid var(--line);
     }
-
-    .records-tabs button {
+    .tabs button {
       flex: 1;
+      height: 42px;
       border: 0;
-      background: #eef3f9;
-      color: #344966;
       border-radius: 12px;
-      height: 44px;
+      background: #eef3f9;
+      color: #334155;
       font-weight: 1000;
     }
+    .tabs button.active { background: #082d62; color: #fff; }
 
-    .records-tabs button.active {
-      background: #082d62;
-      color: #fff;
-    }
-
-    .table-wrap {
-      max-height: 520px;
-      overflow: auto;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 780px;
-    }
-
-    th,
-    td {
+    .table-wrap { overflow: auto; max-height: 620px; }
+    table { width: 100%; border-collapse: collapse; min-width: 860px; }
+    th, td {
       padding: 13px 12px;
-      border-bottom: 1px solid #edf1f6;
-      font-size: 13px;
+      border-bottom: 1px solid #edf2f7;
       text-align: left;
-      vertical-align: middle;
       white-space: nowrap;
+      font-size: 13px;
+      vertical-align: middle;
     }
-
     th {
       position: sticky;
       top: 0;
       background: #f7faff;
-      color: #233b60;
-      font-size: 12px;
+      color: #263f63;
       z-index: 2;
-    }
-
-    td strong {
-      font-weight: 1000;
-    }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      border-radius: 999px;
-      padding: 5px 9px;
       font-size: 12px;
       font-weight: 1000;
     }
 
-    .pill.irc {
-      background: #dbeafe;
-      color: #0754c8;
-    }
+    .pill { display: inline-flex; padding: 5px 9px; border-radius: 999px; font-size: 12px; font-weight: 1000; }
+    .pill.in { background: #dcfce7; color: #047857; }
+    .pill.out { background: #fee2e2; color: #be123c; }
+    .pill.sale { background: #dbeafe; color: #0754c8; }
+    .pill.etc { background: #f3e8ff; color: #7e22ce; }
 
-    .pill.in {
-      background: #dcfce7;
-      color: #047857;
-    }
-
-    .pill.out {
-      background: #fee2e2;
-      color: #be123c;
-    }
-
-    .pill.etc {
-      background: #f3e8ff;
-      color: #7e22ce;
-    }
-
-    .pill.done {
-      background: #e2e8f0;
-      color: #475569;
-    }
-
-    .record-actions {
-      display: flex;
-      gap: 6px;
-    }
-
-    .record-actions button {
+    .row-actions { display: flex; gap: 6px; }
+    .row-actions button {
+      height: 32px;
       border: 1px solid #dce5f0;
       background: #fff;
+      color: #334155;
       border-radius: 10px;
-      height: 32px;
       padding: 0 10px;
       font-weight: 900;
-      color: #334155;
     }
 
-    .record-actions button:hover {
-      background: #f1f5f9;
-    }
-
-    .calendar-card {
-      margin-top: 18px;
-      padding: 18px;
-    }
-
-    .calendar-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 14px;
-    }
-
-    .calendar-head h3 {
-      margin: 0;
-      font-size: 17px;
-    }
-
-    .mini-calendar {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 6px;
-      text-align: center;
-      font-size: 12px;
-      font-weight: 900;
-    }
-
-    .mini-calendar div {
-      min-height: 28px;
-      border-radius: 10px;
-      display: grid;
-      place-items: center;
-      color: #334155;
-    }
-
-    .mini-calendar .dow {
-      color: #64748b;
-      background: transparent;
-    }
-
-    .mini-calendar .today {
-      background: #0b66e4;
-      color: #fff;
-    }
-
-    .mini-calendar .has {
-      border: 1px solid #93c5fd;
-      background: #eff6ff;
-    }
-
-    .toast {
-      position: fixed;
-      right: 22px;
-      bottom: 22px;
-      background: #0f172a;
-      color: #fff;
-      border-radius: 14px;
-      padding: 14px 16px;
-      font-weight: 900;
-      box-shadow: 0 16px 40px rgba(15,23,42,.25);
-      opacity: 0;
-      transform: translateY(12px);
-      pointer-events: none;
-      transition: .2s ease;
-      z-index: 1000;
-      max-width: 360px;
-    }
-
-    .toast.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .loading-cover {
-      position: fixed;
-      inset: 0;
-      background: rgba(244,247,251,.75);
-      backdrop-filter: blur(3px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 999;
-      font-weight: 1000;
-      color: #12325d;
-    }
-
-    .loading-cover.show {
-      display: flex;
-    }
-
-    .page {
-      display: none;
-    }
-
-    .page.active {
-      display: block;
-    }
-
-    .product-list {
+    .products {
       display: grid;
       gap: 10px;
       padding: 16px;
-      max-height: 640px;
+      max-height: 520px;
       overflow: auto;
     }
-
-    .product-row {
+    .prod {
       border: 1px solid #e2e8f0;
       background: #fff;
       border-radius: 15px;
@@ -857,65 +397,55 @@
       display: grid;
       grid-template-columns: 1fr auto;
       gap: 10px;
+      text-align: left;
       align-items: center;
     }
+    .prod:hover { border-color: #93c5fd; background: #f8fbff; }
+    .prod strong { display: block; font-size: 15px; }
+    .prod span { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; font-weight: 800; }
 
-    .product-row:hover {
-      border-color: #93c5fd;
-      background: #f8fbff;
+    .toast {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      background: #0f172a;
+      color: #fff;
+      padding: 14px 16px;
+      border-radius: 14px;
+      box-shadow: 0 16px 40px rgba(15,23,42,.25);
+      font-weight: 900;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: .2s ease;
+      pointer-events: none;
+      z-index: 1000;
+      max-width: 360px;
     }
+    .toast.show { opacity: 1; transform: translateY(0); }
 
-    .product-row strong {
-      display: block;
-      font-size: 15px;
-    }
-
-    .product-row span {
-      display: block;
-      margin-top: 4px;
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 750;
-    }
-
-    .mobile-tabbar {
+    .loading {
+      position: fixed;
+      inset: 0;
       display: none;
+      place-items: center;
+      background: rgba(244,247,251,.78);
+      backdrop-filter: blur(3px);
+      z-index: 999;
+      color: #0b2d5f;
+      font-weight: 1000;
     }
+    .loading.show { display: grid; }
 
-    @media (max-width: 1180px) {
-      .app {
-        grid-template-columns: 1fr;
-      }
+    .mobile { display: none; }
 
-      .sidebar {
-        display: none;
-      }
-
-      .main {
-        padding: 18px 14px 86px;
-      }
-
-      .topbar {
-        grid-template-columns: 1fr;
-      }
-
-      .grid-stats {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .banner {
-        grid-column: 1 / -1;
-      }
-
-      .work-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .type-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .mobile-tabbar {
+    @media(max-width: 1180px) {
+      .app { grid-template-columns: 1fr; }
+      .side { display: none; }
+      .main { padding: 18px 14px 86px; }
+      .grid { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .types { grid-template-columns: 1fr; }
+      .mobile {
         position: fixed;
         left: 0;
         right: 0;
@@ -927,514 +457,330 @@
         border-top: 1px solid #dbe3ef;
         box-shadow: 0 -8px 24px rgba(15,23,42,.08);
       }
-
-      .mobile-tabbar button {
+      .mobile button {
         border: 0;
         background: #fff;
-        padding: 10px 2px;
         color: #64748b;
+        padding: 10px 2px;
         font-size: 11px;
         font-weight: 1000;
       }
-
-      .mobile-tabbar button.active {
-        color: var(--blue);
-      }
+      .mobile button.active { color: var(--blue); }
     }
 
-    @media (max-width: 720px) {
-      .title h1 {
-        font-size: 23px;
-      }
-
-      .grid-stats {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .stat {
-        min-height: 96px;
-        padding: 14px;
-        grid-template-columns: 36px 1fr;
-      }
-
-      .stat .ico {
-        width: 36px;
-        height: 36px;
-        font-size: 18px;
-      }
-
-      .stat strong {
-        font-size: 21px;
-      }
-
-      .stepper {
-        grid-template-columns: 1fr;
-      }
-
-      .grid-2,
-      .grid-3,
-      .grid-4,
-      .product-search-box {
-        grid-template-columns: 1fr;
-      }
-
-      .selected-product {
-        grid-template-columns: 1fr;
-      }
-
-      .selected-product .thumb {
-        display: none;
-      }
-
-      .type-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .card-header {
-        align-items: flex-start;
-        flex-direction: column;
-      }
+    @media(max-width: 760px) {
+      h1 { font-size: 23px; }
+      .top { flex-direction: column; }
+      .grid2, .grid3, .grid4, .quick { grid-template-columns: 1fr; }
+      .head { flex-direction: column; }
+      .selected { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
   <div class="app">
-    <aside class="sidebar">
+    <aside class="side">
       <div class="logo">
         <div class="logo-mark">C</div>
         <div>
           <strong>COSTCO</strong>
-          <span>운영 기록 사이트</span>
+          <span>운영 기록부 Fresh</span>
         </div>
       </div>
 
-      <nav class="nav">
-        <button class="active" data-page="home">🏠 홈</button>
-        <button data-page="new">⚡ 빠른 등록</button>
-        <button data-page="records">📋 운영 기록</button>
-        <button data-page="products">🧾 제품 조회</button>
+      <nav class="menu">
+        <button class="active" data-scroll="home">🏠 홈</button>
+        <button data-scroll="register">⚡ 등록</button>
+        <button data-scroll="records">📋 운영기록</button>
+        <button data-scroll="products">🧾 제품DB</button>
       </nav>
 
-      <div class="help-card">
-        <strong>입력 순서</strong><br />
-        제품 선택 → 작업 선택 → 상세 입력<br />
-        모델입고 가격은 이후 IRC 등록 시 자동으로 불러옵니다.
+      <div class="guide">
+        <strong>새 기준</strong><br />
+        입고 / 소진 / 할인만 사용<br />
+        라인업리스트는 라인업DB 기준<br />
+        이전 테이블은 사용하지 않음
       </div>
     </aside>
 
     <main class="main">
-      <div class="topbar">
-        <div class="title">
-          <h1>코스트코 운영 기록 사이트</h1>
-          <p>기존 기록은 유지하고, 입력 화면만 단순화했습니다.</p>
+      <section id="home" class="top">
+        <div>
+          <h1>코스트코 운영 기록부</h1>
+          <p class="sub">입고 · 소진 · 할인만 단순하게 등록하고, 주간 라인업리스트는 라인업DB 기준으로 만듭니다.</p>
         </div>
-
-        <div class="search-global">
-          <span>🔎</span>
-          <input id="globalSearch" placeholder="아이템번호, 모델명, 브랜드로 검색하세요." />
+        <div class="actions">
+          <button class="btn ghost" id="refreshBtn">새로고침</button>
+          <button class="btn primary" data-scroll="register">바로 등록</button>
         </div>
+      </section>
 
-        <div class="top-actions">
-          <button class="ghost-btn" id="refreshBtn">새로고침</button>
-          <button class="primary-btn" data-page-jump="new">+ 등록</button>
-        </div>
-      </div>
+      <section class="stats">
+        <div class="stat"><small>전체 기록</small><strong id="statTotal">0</strong></div>
+        <div class="stat"><small>입고</small><strong id="statIn">0</strong></div>
+        <div class="stat"><small>소진</small><strong id="statOut">0</strong></div>
+        <div class="stat"><small>할인</small><strong id="statSale">0</strong></div>
+      </section>
 
-      <section class="page active" id="page-home">
-        <div class="grid-stats">
-          <div class="stat">
-            <div class="ico">📄</div>
+      <div class="grid">
+        <section id="register" class="card">
+          <div class="head">
             <div>
-              <small>전체 등록</small>
-              <strong id="statTotal">0</strong>
+              <h2>빠른 등록</h2>
+              <p>문장으로 붙여넣거나 아래 필드에 직접 입력하세요.</p>
             </div>
+            <button class="btn ghost" id="resetBtn">초기화</button>
           </div>
-          <div class="stat">
-            <div class="ico">🏷️</div>
-            <div>
-              <small>IRC</small>
-              <strong id="statIrc">0</strong>
-            </div>
-          </div>
-          <div class="stat">
-            <div class="ico">📦</div>
-            <div>
-              <small>입고/철수</small>
-              <strong id="statModel">0</strong>
-            </div>
-          </div>
-          <div class="stat">
-            <div class="ico">📣</div>
-            <div>
-              <small>행사 및 기타</small>
-              <strong id="statEtc">0</strong>
-            </div>
-          </div>
-          <div class="banner">
-            <small>Costco Operation Log</small>
-            <strong>제품 DB 기준으로 가격을 불러오고, 기록은 그대로 유지합니다.</strong>
-            <p>모델입고 가격 → IRC 기본가격 자동 연결</p>
-          </div>
-        </div>
 
-        <div class="work-grid">
-          <div class="card" id="quickCard">
-            <div class="card-header">
-              <div>
-                <h2>빠른 등록</h2>
-                <p>제품을 먼저 선택하면 브랜드·모델·기본가격이 자동 입력됩니다.</p>
+          <div class="section">
+            <div class="section-title"><span class="num">1</span> 문장 입력</div>
+            <div class="quick">
+              <textarea id="quickText" class="big" placeholder="예시 1) 9월 2일 삼성 냉장고 123456 RM70F91R1A 2,799,000원 입고&#10;예시 2) 9월 2일 123456 소진&#10;예시 3) 9월 2일~20일 브랜드위크 123456 RM70F91R1A 2,799,000원에서 300,000원 할인 2,499,000원 판매"></textarea>
+              <button class="btn primary" id="parseBtn" type="button">내용 정리</button>
+            </div>
+            <div class="examples">입고 / 소진 / 철수 / IRC / 브랜드위크 / 할인 단어를 보고 자동으로 유형을 선택합니다.</div>
+          </div>
+
+          <form id="entryForm">
+            <input type="hidden" id="editId" />
+
+            <div class="section">
+              <div class="section-title"><span class="num">2</span> 등록 유형</div>
+              <div class="types">
+                <button type="button" class="type active" data-type="입고">
+                  <div class="ico">📦</div>
+                  <strong>제품 입고</strong>
+                  <span>품목 · 모델명 · 가격 · 일자 등록</span>
+                </button>
+                <button type="button" class="type" data-type="소진">
+                  <div class="ico">🚚</div>
+                  <strong>제품 소진</strong>
+                  <span>아이템번호와 소진일만 등록</span>
+                </button>
+                <button type="button" class="type" data-type="할인">
+                  <div class="ico">🏷️</div>
+                  <strong>가격 할인</strong>
+                  <span>IRC · 브랜드위크 · 할인행사 등록</span>
+                </button>
               </div>
-              <button class="ghost-btn" id="resetFormBtn">초기화</button>
             </div>
 
-            <div class="stepper">
-              <div class="step active" id="step1"><span class="num">1</span>제품 선택</div>
-              <div class="step" id="step2"><span class="num">2</span>등록 유형</div>
-              <div class="step" id="step3"><span class="num">3</span>상세 입력</div>
-            </div>
-
-            <form id="entryForm">
-              <input type="hidden" id="editId" />
-
-              <div class="section">
-                <div class="section-title"><span class="badge-num">1</span> 제품 선택</div>
-                <div class="product-search-box">
-                  <input id="itemSearchInput" placeholder="아이템번호 또는 모델명 입력" />
-                  <button type="button" class="primary-btn" id="productSearchBtn">조회</button>
+            <div class="section">
+              <div class="section-title"><span class="num">3</span> 제품 정보</div>
+              <div class="grid3">
+                <div class="field">
+                  <label>브랜드</label>
+                  <select id="brand">
+                    <option value="삼성">삼성(당사)</option>
+                    <option value="LG">LG(X사)</option>
+                    <option value="기타">기타</option>
+                  </select>
                 </div>
-
-                <div id="selectedProductBox" class="empty-selected">
-                  제품을 조회하거나 모델입고를 선택해 신규 제품을 입력하세요.
+                <div class="field">
+                  <label>아이템번호</label>
+                  <input id="itemNo" placeholder="예: 123456" />
+                </div>
+                <div class="field">
+                  <label>모델명</label>
+                  <input id="modelName" placeholder="예: RM70F91R1A" />
                 </div>
               </div>
 
-              <div class="section">
-                <div class="section-title"><span class="badge-num">2</span> 등록 유형</div>
-                <div class="type-grid">
-                  <button type="button" class="type-card active" data-type="irc">
-                    <div class="type-ico">🏷️</div>
-                    <strong>IRC 등록</strong>
-                    <span>기본 가격을 불러와 할인 행사 등록</span>
-                  </button>
-                  <button type="button" class="type-card" data-type="in">
-                    <div class="type-ico">📦</div>
-                    <strong>모델입고</strong>
-                    <span>신규 모델과 기본 가격 등록</span>
-                  </button>
-                  <button type="button" class="type-card" data-type="out">
-                    <div class="type-ico">🚚</div>
-                    <strong>모델철수</strong>
-                    <span>아이템번호와 철수 일자만 입력</span>
-                  </button>
-                  <button type="button" class="type-card" data-type="etc">
-                    <div class="type-ico">📣</div>
-                    <strong>행사 및 기타</strong>
-                    <span>인력·행사·운영 이슈 기록</span>
-                  </button>
-                </div>
+              <div class="actions">
+                <button type="button" class="btn ghost" id="lookupBtn">제품 정보 불러오기</button>
               </div>
 
-              <div class="section">
-                <div class="section-title"><span class="badge-num">3</span> 상세 입력</div>
+              <div id="selectedBox" class="selected empty">
+                제품 조회 시 브랜드 · 품목 · 모델명 · 기본 가격을 불러옵니다.
+              </div>
+            </div>
 
-                <div class="form-panel">
-                  <div class="form-title">
-                    <strong id="formPanelTitle">IRC 등록 정보</strong>
-                    <span class="hint" id="formPanelHint">기본 가격은 제품 DB에서 자동으로 불러옵니다.</span>
-                  </div>
+            <div class="section">
+              <div class="panel">
+                <div class="panel-title">
+                  <strong id="panelTitle">제품 입고 정보</strong>
+                  <span class="hint" id="panelHint">입고 등록 시 라인업DB에 반영됩니다.</span>
+                </div>
 
-                  <div class="grid-3" id="commonFields">
+                <div id="inFields">
+                  <div class="grid4">
                     <div class="field">
-                      <label>브랜드</label>
-                      <select id="brand">
-                        <option value="삼성">삼성</option>
-                        <option value="LG">LG</option>
-                        <option value="기타">기타</option>
+                      <label>품목</label>
+                      <select id="category">
+                        <option>TV</option>
+                        <option>모니터</option>
+                        <option>냉장고</option>
+                        <option>김치냉장고</option>
+                        <option>세탁기</option>
+                        <option>건조기</option>
+                        <option>세탁·건조</option>
+                        <option>의류케어</option>
+                        <option>에어컨</option>
+                        <option>청소기</option>
+                        <option>식기세척기</option>
+                        <option>인덕션</option>
+                        <option>소형가전</option>
+                        <option>기타</option>
                       </select>
                     </div>
                     <div class="field">
-                      <label>아이템번호</label>
-                      <input id="productItemNo" placeholder="예: 693833" />
+                      <label>기본 가격</label>
+                      <input id="basePrice" inputmode="numeric" placeholder="예: 2799000" />
                     </div>
                     <div class="field">
-                      <label>모델명</label>
-                      <input id="modelName" placeholder="예: 65NA1C90AMA" />
+                      <label>입고일</label>
+                      <input id="inDate" type="date" />
                     </div>
-                  </div>
-
-                  <div id="ircFields" class="form-type-fields">
-                    <div class="grid-4" style="margin-top:12px;">
-                      <div class="field">
-                        <label>행사명</label>
-                        <input id="eventName" placeholder="예: 브랜드위크" />
-                      </div>
-                      <div class="field">
-                        <label>기본 가격</label>
-                        <input id="basePrice" placeholder="자동 불러오기" inputmode="numeric" />
-                      </div>
-                      <div class="field">
-                        <label>할인 금액</label>
-                        <input id="discountPrice" placeholder="예: 200000" inputmode="numeric" />
-                      </div>
-                      <div class="field">
-                        <label>최종 가격</label>
-                        <input id="finalPrice" placeholder="자동 계산" inputmode="numeric" />
-                      </div>
+                    <div class="field">
+                      <label>상태</label>
+                      <input value="운영" readonly />
                     </div>
-                    <div class="grid-2" style="margin-top:12px;">
-                      <div class="field">
-                        <label>IRC 시작일</label>
-                        <input id="eventStart" type="date" />
-                      </div>
-                      <div class="field">
-                        <label>IRC 종료일</label>
-                        <input id="eventEnd" type="date" />
-                      </div>
-                    </div>
-                    <div class="field" style="margin-top:12px;">
-                      <label>메모</label>
-                      <textarea id="ircNote" placeholder="예: 셀프프라이스데이 행사"></textarea>
-                    </div>
-                  </div>
-
-                  <div id="modelInFields" class="form-type-fields hidden">
-                    <div class="grid-4" style="margin-top:12px;">
-                      <div class="field">
-                        <label>품목</label>
-                        <select id="inCategory">
-                          <option value="TV">TV</option>
-                          <option value="모니터">모니터</option>
-                          <option value="냉장고">냉장고</option>
-                          <option value="김치냉장고">김치냉장고</option>
-                          <option value="세탁기">세탁기</option>
-                          <option value="건조기">건조기</option>
-                          <option value="세탁·건조">세탁·건조</option>
-                          <option value="의류케어">의류케어</option>
-                          <option value="에어컨">에어컨</option>
-                          <option value="청소기">청소기</option>
-                          <option value="식기세척기">식기세척기</option>
-                          <option value="인덕션">인덕션</option>
-                          <option value="소형가전">소형가전</option>
-                          <option value="기타">기타</option>
-                        </select>
-                      </div>
-                      <div class="field">
-                        <label>모델명</label>
-                        <input id="inModelName" placeholder="예: FG19EN" />
-                      </div>
-                      <div class="field">
-                        <label>기본 가격</label>
-                        <input id="inBasePrice" placeholder="예: 1299000" inputmode="numeric" />
-                      </div>
-                      <div class="field">
-                        <label>입고 일자</label>
-                        <input id="inDate" type="date" />
-                      </div>
-                    </div>
-                    <div class="field" style="margin-top:12px;">
-                      <label>메모</label>
-                      <textarea id="inNote" placeholder="예: 신규 모델 입고"></textarea>
-                    </div>
-                  </div>
-
-                  <div id="modelOutFields" class="form-type-fields hidden">
-                    <div class="grid-2" style="margin-top:12px;">
-                      <div class="field">
-                        <label>아이템번호</label>
-                        <input id="outItemNo" placeholder="예: 694666" />
-                      </div>
-                      <div class="field">
-                        <label>철수 일자</label>
-                        <input id="outDate" type="date" />
-                      </div>
-                    </div>
-                    <div class="field" style="margin-top:12px;">
-                      <label>메모</label>
-                      <textarea id="outNote" placeholder="필요 시만 입력"></textarea>
-                    </div>
-                  </div>
-
-                  <div id="etcFields" class="form-type-fields hidden">
-                    <div class="grid-3" style="margin-top:12px;">
-                      <div class="field">
-                        <label>기타 구분</label>
-                        <select id="etcCategory">
-                          <option value="행사">행사</option>
-                          <option value="인력변동">인력변동</option>
-                          <option value="점포이슈">점포이슈</option>
-                          <option value="운영공지">운영공지</option>
-                          <option value="기타">기타</option>
-                        </select>
-                      </div>
-                      <div class="field">
-                        <label>제목</label>
-                        <input id="etcTitle" placeholder="예: 감사제 운영" />
-                      </div>
-                      <div class="field">
-                        <label>관련 점포</label>
-                        <input id="relatedStore" placeholder="예: 대구점" />
-                      </div>
-                    </div>
-                    <div class="grid-2" style="margin-top:12px;">
-                      <div class="field">
-                        <label>시작일</label>
-                        <input id="etcStart" type="date" />
-                      </div>
-                      <div class="field">
-                        <label>종료일</label>
-                        <input id="etcEnd" type="date" />
-                      </div>
-                    </div>
-                    <div class="field" style="margin-top:12px;">
-                      <label>상세 내용</label>
-                      <textarea id="etcNote" placeholder="내용을 입력하세요."></textarea>
-                    </div>
-                  </div>
-
-                  <div class="form-actions">
-                    <button type="button" class="ghost-btn" id="clearBtn">초기화</button>
-                    <button type="submit" class="primary-btn" id="submitBtn">등록하기</button>
                   </div>
                 </div>
-              </div>
-            </form>
-          </div>
 
+                <div id="outFields" class="hidden">
+                  <div class="grid2">
+                    <div class="field">
+                      <label>소진일</label>
+                      <input id="outDate" type="date" />
+                    </div>
+                    <div class="field">
+                      <label>처리 상태</label>
+                      <input value="진열소진" readonly />
+                    </div>
+                  </div>
+                </div>
+
+                <div id="saleFields" class="hidden">
+                  <div class="grid4">
+                    <div class="field">
+                      <label>행사명</label>
+                      <input id="eventName" placeholder="예: IRC / 브랜드위크" />
+                    </div>
+                    <div class="field">
+                      <label>기본 가격</label>
+                      <input id="saleBasePrice" inputmode="numeric" placeholder="자동 불러오기" />
+                    </div>
+                    <div class="field">
+                      <label>할인 금액</label>
+                      <input id="discountPrice" inputmode="numeric" placeholder="예: 300000" />
+                    </div>
+                    <div class="field">
+                      <label>최종 가격</label>
+                      <input id="finalPrice" inputmode="numeric" placeholder="자동 계산" />
+                    </div>
+                  </div>
+
+                  <div class="grid2" style="margin-top:12px">
+                    <div class="field">
+                      <label>시작일</label>
+                      <input id="startDate" type="date" />
+                    </div>
+                    <div class="field">
+                      <label>종료일</label>
+                      <input id="endDate" type="date" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field" style="margin-top:12px">
+                  <label>메모</label>
+                  <textarea id="note" placeholder="필요 시만 입력"></textarea>
+                </div>
+
+                <div class="actions">
+                  <button type="button" class="btn ghost" id="clearBtn">입력 지우기</button>
+                  <button type="submit" class="btn primary" id="submitBtn">제품 입고 등록</button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <aside>
+          <section id="products" class="card">
+            <div class="head">
+              <div>
+                <h2>제품 DB</h2>
+                <p>라인업DB와 연결되는 현재 제품 원장입니다.</p>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="field">
+                <label>제품 검색</label>
+                <input id="productSearch" placeholder="아이템번호 / 모델명 / 브랜드 / 품목" />
+              </div>
+            </div>
+
+            <div id="productList" class="products"></div>
+          </section>
+        </aside>
+      </div>
+
+      <section id="records" class="card" style="margin-top:18px">
+        <div class="head">
           <div>
-            <div class="card">
-              <div class="card-header">
-                <div>
-                  <h2>최근 기록</h2>
-                  <p>저장된 운영 기록을 확인하고 수정할 수 있습니다.</p>
-                </div>
-                <button class="ghost-btn" data-page-jump="records">더보기</button>
-              </div>
-
-              <div class="records-tabs">
-                <button class="active" id="listViewBtn">목록 보기</button>
-                <button id="calendarViewBtn">달력 보기</button>
-              </div>
-
-              <div class="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>아이템번호</th>
-                      <th>구분</th>
-                      <th>브랜드</th>
-                      <th>모델명</th>
-                      <th>가격</th>
-                      <th>기간/일자</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody id="recentTableBody"></tbody>
-                </table>
-              </div>
-            </div>
-
-            <div class="card calendar-card">
-              <div class="calendar-head">
-                <h3>이번 달 등록 현황</h3>
-                <button class="ghost-btn" id="todayBtn">오늘</button>
-              </div>
-              <div class="mini-calendar" id="miniCalendar"></div>
-            </div>
+            <h2>운영 기록</h2>
+            <p>입고 · 소진 · 할인 기록이 기간별로 남습니다.</p>
           </div>
         </div>
-      </section>
 
-      <section class="page" id="page-new">
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <h2>빠른 등록</h2>
-              <p>홈 화면과 동일한 등록 화면입니다.</p>
-            </div>
-          </div>
+        <div class="tabs">
+          <button class="active" data-filter="전체">전체</button>
+          <button data-filter="입고">입고</button>
+          <button data-filter="소진">소진</button>
+          <button data-filter="할인">할인</button>
         </div>
-        <div style="height:14px"></div>
-        <div id="newPageMount"></div>
-      </section>
 
-      <section class="page" id="page-records">
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <h2>운영 기록</h2>
-              <p>기존 기록은 삭제하지 않고 같은 Supabase 테이블을 사용합니다.</p>
-            </div>
-            <button class="primary-btn" data-page-jump="new">+ 새 기록</button>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>일자</th>
-                  <th>아이템번호</th>
-                  <th>구분</th>
-                  <th>브랜드</th>
-                  <th>모델/대상</th>
-                  <th>가격</th>
-                  <th>기간/적용일</th>
-                  <th>메모</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="allRecordsBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <section class="page" id="page-products">
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <h2>제품 조회 / DB</h2>
-              <p>아이템번호 기준으로 모델명과 기본 가격을 확인합니다.</p>
-            </div>
-          </div>
-          <div class="section">
-            <div class="product-search-box">
-              <input id="productListSearch" placeholder="제품 검색" />
-              <button class="primary-btn" id="productListSearchBtn">검색</button>
-            </div>
-          </div>
-          <div class="product-list" id="productList"></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>일자</th>
+                <th>구분</th>
+                <th>브랜드</th>
+                <th>품목</th>
+                <th>아이템번호</th>
+                <th>모델명</th>
+                <th>가격/할인</th>
+                <th>기간</th>
+                <th>메모</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="recordBody"></tbody>
+          </table>
         </div>
       </section>
     </main>
   </div>
 
-  <div class="mobile-tabbar">
-    <button class="active" data-page="home">홈</button>
-    <button data-page="new">등록</button>
-    <button data-page="records">기록</button>
-    <button data-page="products">제품</button>
+  <div class="mobile">
+    <button class="active" data-scroll="home">홈</button>
+    <button data-scroll="register">등록</button>
+    <button data-scroll="records">기록</button>
+    <button data-scroll="products">제품</button>
   </div>
 
+  <div id="loading" class="loading">처리 중...</div>
   <div id="toast" class="toast"></div>
-  <div id="loading" class="loading-cover">불러오는 중...</div>
 
   <script>
     const SUPABASE_URL = "https://lmkprhvbpanzchskfggy.supabase.co";
     const SUPABASE_KEY = "sb_publishable_X5wZWJufMbu8K3zo2lwjBA_xcBf_SSK";
-
     const SHEET_BRIDGE_URL = "https://script.google.com/macros/s/AKfycbxpButBm8R_A1JaeIQY09sQ3K3RQbBavLise1oz2gK2NCY7swLCo4aHH36clNuRYuvHdw/exec";
     const SHEET_BRIDGE_SECRET = "costco-ops-log";
 
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const state = {
-      entries: [],
+      type: "입고",
+      filter: "전체",
       products: [],
+      records: [],
       productMap: new Map(),
-      selectedProduct: null,
-      activeType: "irc",
-      currentPage: "home",
-      editEntry: null,
-      today: toDateInputValue(new Date())
+      today: dateInput(new Date())
     };
 
     const $ = (id) => document.getElementById(id);
@@ -1442,52 +788,39 @@
     const els = {
       loading: $("loading"),
       toast: $("toast"),
-      globalSearch: $("globalSearch"),
-      itemSearchInput: $("itemSearchInput"),
-      productSearchBtn: $("productSearchBtn"),
-      selectedProductBox: $("selectedProductBox"),
+      refreshBtn: $("refreshBtn"),
+      resetBtn: $("resetBtn"),
+      clearBtn: $("clearBtn"),
+      parseBtn: $("parseBtn"),
+      quickText: $("quickText"),
       entryForm: $("entryForm"),
       editId: $("editId"),
       brand: $("brand"),
-      productItemNo: $("productItemNo"),
+      itemNo: $("itemNo"),
       modelName: $("modelName"),
-      eventName: $("eventName"),
+      category: $("category"),
       basePrice: $("basePrice"),
+      inDate: $("inDate"),
+      outDate: $("outDate"),
+      eventName: $("eventName"),
+      saleBasePrice: $("saleBasePrice"),
       discountPrice: $("discountPrice"),
       finalPrice: $("finalPrice"),
-      eventStart: $("eventStart"),
-      eventEnd: $("eventEnd"),
-      ircNote: $("ircNote"),
-      inCategory: $("inCategory"),
-      inModelName: $("inModelName"),
-      inBasePrice: $("inBasePrice"),
-      inDate: $("inDate"),
-      inNote: $("inNote"),
-      outItemNo: $("outItemNo"),
-      outDate: $("outDate"),
-      outNote: $("outNote"),
-      etcCategory: $("etcCategory"),
-      etcTitle: $("etcTitle"),
-      relatedStore: $("relatedStore"),
-      etcStart: $("etcStart"),
-      etcEnd: $("etcEnd"),
-      etcNote: $("etcNote"),
+      startDate: $("startDate"),
+      endDate: $("endDate"),
+      note: $("note"),
+      lookupBtn: $("lookupBtn"),
+      selectedBox: $("selectedBox"),
       submitBtn: $("submitBtn"),
-      clearBtn: $("clearBtn"),
-      resetFormBtn: $("resetFormBtn"),
-      recentTableBody: $("recentTableBody"),
-      allRecordsBody: $("allRecordsBody"),
+      panelTitle: $("panelTitle"),
+      panelHint: $("panelHint"),
+      productSearch: $("productSearch"),
       productList: $("productList"),
-      productListSearch: $("productListSearch"),
-      productListSearchBtn: $("productListSearchBtn"),
-      miniCalendar: $("miniCalendar"),
-      formPanelTitle: $("formPanelTitle"),
-      formPanelHint: $("formPanelHint"),
+      recordBody: $("recordBody"),
       statTotal: $("statTotal"),
-      statIrc: $("statIrc"),
-      statModel: $("statModel"),
-      statEtc: $("statEtc"),
-      refreshBtn: $("refreshBtn")
+      statIn: $("statIn"),
+      statOut: $("statOut"),
+      statSale: $("statSale")
     };
 
     document.addEventListener("DOMContentLoaded", async () => {
@@ -1497,109 +830,78 @@
     });
 
     function bindEvents() {
-      document.querySelectorAll("[data-page]").forEach((btn) => {
-        btn.addEventListener("click", () => switchPage(btn.dataset.page));
+      document.querySelectorAll("[data-scroll]").forEach((button) => {
+        button.addEventListener("click", () => scrollToSection(button.dataset.scroll));
       });
 
-      document.querySelectorAll("[data-page-jump]").forEach((btn) => {
-        btn.addEventListener("click", () => switchPage(btn.dataset.pageJump));
+      document.querySelectorAll("[data-type]").forEach((button) => {
+        button.addEventListener("click", () => setType(button.dataset.type));
       });
 
-      document.querySelectorAll(".type-card").forEach((btn) => {
-        btn.addEventListener("click", () => setActiveType(btn.dataset.type));
+      document.querySelectorAll("[data-filter]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.filter = button.dataset.filter;
+          document.querySelectorAll("[data-filter]").forEach((btn) => {
+            btn.classList.toggle("active", btn.dataset.filter === state.filter);
+          });
+          renderRecords();
+        });
       });
 
-      els.productSearchBtn.addEventListener("click", searchAndSelectProduct);
-      els.itemSearchInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          searchAndSelectProduct();
-        }
-      });
-
-      els.entryForm.addEventListener("submit", submitEntry);
-      els.clearBtn.addEventListener("click", resetForm);
-      els.resetFormBtn.addEventListener("click", resetForm);
       els.refreshBtn.addEventListener("click", loadAll);
-
-      els.discountPrice.addEventListener("input", calcFinalPriceFromDiscount);
-      els.basePrice.addEventListener("input", calcFinalPriceFromDiscount);
-      els.finalPrice.addEventListener("input", () => {
-        els.finalPrice.dataset.manual = "1";
-      });
-
-      els.globalSearch.addEventListener("input", renderAll);
-      els.productListSearchBtn.addEventListener("click", renderProducts);
-      els.productListSearch.addEventListener("input", renderProducts);
-
-      $("todayBtn").addEventListener("click", () => {
-        setDefaultDates();
-        showToast("오늘 날짜로 입력일자를 맞췄습니다.");
-      });
+      els.resetBtn.addEventListener("click", resetForm);
+      els.clearBtn.addEventListener("click", resetForm);
+      els.parseBtn.addEventListener("click", parseQuickText);
+      els.lookupBtn.addEventListener("click", lookupProduct);
+      els.itemNo.addEventListener("blur", lookupProductSilent);
+      els.discountPrice.addEventListener("input", calculateFinalPrice);
+      els.saleBasePrice.addEventListener("input", calculateFinalPrice);
+      els.productSearch.addEventListener("input", renderProducts);
+      els.entryForm.addEventListener("submit", submitForm);
     }
 
-    function switchPage(page) {
-      state.currentPage = page;
+    function scrollToSection(id) {
+      const target = document.getElementById(id);
+      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
 
-      document.querySelectorAll(".page").forEach((el) => {
-        el.classList.remove("active");
+      document.querySelectorAll("[data-scroll]").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.scroll === id);
       });
-
-      const target = $(`page-${page}`);
-      if (target) target.classList.add("active");
-
-      document.querySelectorAll("[data-page]").forEach((btn) => {
-        btn.classList.toggle("active", btn.dataset.page === page);
-      });
-
-      if (page === "new") {
-        const quickCard = $("quickCard");
-        const mount = $("newPageMount");
-        if (quickCard && mount && quickCard.parentElement !== mount) {
-          mount.appendChild(quickCard);
-        }
-      } else if (page === "home") {
-        const grid = document.querySelector(".work-grid");
-        const quickCard = $("quickCard");
-        if (grid && quickCard && quickCard.parentElement !== grid) {
-          grid.prepend(quickCard);
-        }
-      }
     }
 
     async function loadAll() {
       setLoading(true);
 
       try {
-        const [entriesRes, productsRes] = await Promise.all([
+        const [productsRes, recordsRes] = await Promise.all([
           supabase
-            .from("ce_plan_items")
+            .from("costco_lineup_products")
             .select("*")
-            .order("base_date", { ascending: false })
-            .order("created_at", { ascending: false }),
+            .order("updated_at", { ascending: false }),
           supabase
-            .from("product_items")
+            .from("costco_ops_logs")
             .select("*")
-            .order("updated_at", { ascending: false })
+            .order("start_date", { ascending: false })
+            .order("created_at", { ascending: false })
         ]);
 
-        if (entriesRes.error) throw entriesRes.error;
         if (productsRes.error) throw productsRes.error;
+        if (recordsRes.error) throw recordsRes.error;
 
-        state.entries = entriesRes.data || [];
         state.products = productsRes.data || [];
+        state.records = recordsRes.data || [];
 
-        rebuildProductCatalog();
+        rebuildProductMap();
         renderAll();
       } catch (err) {
         console.error(err);
-        showToast("데이터를 불러오지 못했습니다.");
+        showToast("데이터를 불러오지 못했습니다. Supabase Fresh SQL 실행 여부를 확인하세요.");
       } finally {
         setLoading(false);
       }
     }
 
-    function rebuildProductCatalog() {
+    function rebuildProductMap() {
       const map = new Map();
 
       state.products.forEach((product) => {
@@ -1609,59 +911,13 @@
         map.set(itemNo, {
           item_no: itemNo,
           brand: normalizeBrand(product.brand),
-          brand_detail: product.brand_detail || "",
+          category: product.category || guessCategory(product.model_name),
           model_name: product.model_name || "",
-          category: guessCategory(product.model_name || ""),
-          base_price: null,
-          note: product.note || "",
-          source: "아이템DB"
+          base_price: toNumber(product.base_price),
+          status: product.status || "운영",
+          removed_date: product.removed_date || "",
+          note: product.note || ""
         });
-      });
-
-      const sortedEntries = [...state.entries].sort((a, b) => {
-        const ak = a.updated_at || a.created_at || a.base_date || "";
-        const bk = b.updated_at || b.created_at || b.base_date || "";
-        return String(ak).localeCompare(String(bk));
-      });
-
-      sortedEntries.forEach((entry) => {
-        const itemNo = normalizeItemNo(entry.product_item_no);
-        if (!itemNo) return;
-
-        const old = map.get(itemNo) || {
-          item_no: itemNo,
-          brand: normalizeBrand(entry.brand),
-          brand_detail: entry.brand_detail || "",
-          model_name: "",
-          category: "기타",
-          base_price: null,
-          note: "",
-          source: "운영기록"
-        };
-
-        if (isModelIn(entry)) {
-          old.brand = normalizeBrand(entry.brand) || old.brand;
-          old.model_name = entry.related_model || entry.after_model || old.model_name;
-          old.category = entry.related_target || old.category || guessCategory(old.model_name);
-          const price = toNumber(entry.etc_price ?? entry.sale_price);
-          if (price !== null) old.base_price = price;
-          old.note = entry.note || old.note;
-          old.source = "모델입고";
-        }
-
-        if (isIrc(entry.type)) {
-          old.brand = normalizeBrand(entry.brand) || old.brand;
-          old.model_name = entry.event_model || old.model_name;
-          const before = toNumber(entry.before_price);
-          if (before !== null) old.base_price = before;
-          old.source = old.source === "모델입고" ? old.source : "IRC";
-        }
-
-        if (!old.category || old.category === "기타") {
-          old.category = guessCategory(old.model_name);
-        }
-
-        map.set(itemNo, old);
       });
 
       state.productMap = map;
@@ -1669,415 +925,256 @@
 
     function renderAll() {
       renderStats();
-      renderRecent();
-      renderAllRecords();
       renderProducts();
-      renderMiniCalendar();
+      renderRecords();
     }
 
     function renderStats() {
-      const total = state.entries.length;
-      const irc = state.entries.filter((e) => isIrc(e.type)).length;
-      const model = state.entries.filter((e) => isModelIn(e) || isModelOut(e)).length;
-      const etc = state.entries.filter((e) => String(e.type).toLowerCase() === "etc" && !isModelIn(e) && !isModelOut(e)).length;
-
-      els.statTotal.textContent = total;
-      els.statIrc.textContent = irc;
-      els.statModel.textContent = model;
-      els.statEtc.textContent = etc;
-    }
-
-    function renderRecent() {
-      const rows = filterEntries(state.entries).slice(0, 10);
-      els.recentTableBody.innerHTML = rows.map((entry) => `
-        <tr>
-          <td><strong>${escapeHtml(entry.product_item_no || "-")}</strong></td>
-          <td>${typePill(entry)}</td>
-          <td>${escapeHtml(displayBrand(entry.brand, entry.brand_detail))}</td>
-          <td><strong>${escapeHtml(getEntryModel(entry) || "-")}</strong></td>
-          <td>${priceSummary(entry)}</td>
-          <td>${periodSummary(entry)}</td>
-          <td>
-            <div class="record-actions">
-              <button type="button" onclick="editEntry('${entry.id}')">수정</button>
-              <button type="button" onclick="deleteEntry('${entry.id}')">삭제</button>
-            </div>
-          </td>
-        </tr>
-      `).join("") || emptyRow(7, "기록이 없습니다.");
-    }
-
-    function renderAllRecords() {
-      const rows = filterEntries(state.entries);
-      els.allRecordsBody.innerHTML = rows.map((entry) => `
-        <tr>
-          <td>${formatDate(entry.base_date || entry.created_at)}</td>
-          <td><strong>${escapeHtml(entry.product_item_no || "-")}</strong></td>
-          <td>${typePill(entry)}</td>
-          <td>${escapeHtml(displayBrand(entry.brand, entry.brand_detail))}</td>
-          <td><strong>${escapeHtml(getEntryModel(entry) || "-")}</strong></td>
-          <td>${priceSummary(entry)}</td>
-          <td>${periodSummary(entry)}</td>
-          <td>${escapeHtml(entry.note || "")}</td>
-          <td>
-            <div class="record-actions">
-              <button type="button" onclick="editEntry('${entry.id}')">수정</button>
-              <button type="button" onclick="deleteEntry('${entry.id}')">삭제</button>
-            </div>
-          </td>
-        </tr>
-      `).join("") || emptyRow(9, "기록이 없습니다.");
+      els.statTotal.textContent = state.records.length;
+      els.statIn.textContent = state.records.filter(row => row.log_type === "입고").length;
+      els.statOut.textContent = state.records.filter(row => row.log_type === "소진").length;
+      els.statSale.textContent = state.records.filter(row => row.log_type === "할인").length;
     }
 
     function renderProducts() {
-      const q = normalizeSearch(els.productListSearch.value || els.globalSearch.value || "");
+      const q = searchText(els.productSearch.value);
+
       const rows = Array.from(state.productMap.values())
-        .filter((p) => {
+        .filter(product => {
           if (!q) return true;
-          return normalizeSearch(`${p.item_no} ${p.brand} ${p.model_name} ${p.category} ${p.note}`).includes(q);
+          return searchText(`${product.item_no} ${product.brand} ${product.category} ${product.model_name} ${product.status}`).includes(q);
         })
-        .sort((a, b) => {
-          const brandCompare = String(a.brand || "").localeCompare(String(b.brand || ""), "ko");
-          if (brandCompare) return brandCompare;
-          const categoryCompare = String(a.category || "").localeCompare(String(b.category || ""), "ko");
-          if (categoryCompare) return categoryCompare;
-          return String(a.model_name || "").localeCompare(String(b.model_name || ""), "ko");
-        });
+        .sort((a, b) =>
+          String(a.brand).localeCompare(String(b.brand), "ko") ||
+          categoryOrder(a.category) - categoryOrder(b.category) ||
+          String(a.model_name).localeCompare(String(b.model_name), "ko")
+        );
 
-      els.productList.innerHTML = rows.map((p) => `
-        <button type="button" class="product-row" onclick="selectProductByItemNo('${p.item_no}', true)">
+      els.productList.innerHTML = rows.map(product => `
+        <button type="button" class="prod" onclick="selectProduct('${escapeAttr(product.item_no)}')">
           <div>
-            <strong>${escapeHtml(p.item_no)} · ${escapeHtml(p.model_name || "-")}</strong>
-            <span>${escapeHtml(p.brand || "-")} / ${escapeHtml(p.category || "-")} / ${p.source || "DB"}</span>
+            <strong>${escapeHtml(product.item_no)} · ${escapeHtml(product.model_name || "-")}</strong>
+            <span>${escapeHtml(product.brand || "-")} / ${escapeHtml(product.category || "-")} / ${escapeHtml(product.status || "-")}</span>
           </div>
-          <strong>${p.base_price ? formatNumber(p.base_price) + "원" : "-"}</strong>
+          <strong>${product.base_price ? formatNumber(product.base_price) + "원" : "-"}</strong>
         </button>
-      `).join("") || `<div class="empty-selected">검색 결과가 없습니다.</div>`;
+      `).join("") || `<div class="selected empty">제품이 없습니다.</div>`;
     }
 
-    function renderMiniCalendar() {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = now.getMonth();
-      const first = new Date(year, month, 1);
-      const last = new Date(year, month + 1, 0);
-      const startDay = first.getDay();
-      const todayDate = now.getDate();
+    function renderRecords() {
+      let rows = [...state.records];
 
-      const datesWithRecords = new Set(
-        state.entries
-          .map((e) => normalizeDate(e.base_date || e.event_start || e.etc_start || e.apply_date))
-          .filter(Boolean)
-          .filter((d) => d.startsWith(`${year}-${String(month + 1).padStart(2, "0")}`))
-          .map((d) => Number(d.slice(8, 10)))
-      );
-
-      const dows = ["일", "월", "화", "수", "목", "금", "토"];
-      const cells = dows.map((d) => `<div class="dow">${d}</div>`);
-
-      for (let i = 0; i < startDay; i++) cells.push("<div></div>");
-
-      for (let day = 1; day <= last.getDate(); day++) {
-        const cls = [
-          day === todayDate ? "today" : "",
-          datesWithRecords.has(day) ? "has" : ""
-        ].filter(Boolean).join(" ");
-
-        cells.push(`<div class="${cls}">${day}</div>`);
+      if (state.filter !== "전체") {
+        rows = rows.filter(row => row.log_type === state.filter);
       }
 
-      els.miniCalendar.innerHTML = cells.join("");
+      els.recordBody.innerHTML = rows.map(row => `
+        <tr>
+          <td>${formatDate(row.start_date || row.created_at)}</td>
+          <td>${typePill(row.log_type)}</td>
+          <td>${escapeHtml(normalizeBrand(row.brand) || "-")}</td>
+          <td>${escapeHtml(row.category || "-")}</td>
+          <td><strong>${escapeHtml(row.item_no || "-")}</strong></td>
+          <td><strong>${escapeHtml(row.model_name || "-")}</strong></td>
+          <td>${priceSummary(row)}</td>
+          <td>${periodSummary(row)}</td>
+          <td>${escapeHtml(row.note || "")}</td>
+          <td>
+            <div class="row-actions">
+              <button type="button" onclick="editRecord('${escapeAttr(row.id)}')">수정</button>
+              <button type="button" onclick="deleteRecord('${escapeAttr(row.id)}')">삭제</button>
+            </div>
+          </td>
+        </tr>
+      `).join("") || `<tr><td colspan="10" style="text-align:center;color:#64748b;font-weight:900;padding:30px">기록이 없습니다.</td></tr>`;
     }
 
-    function filterEntries(entries) {
-      const q = normalizeSearch(els.globalSearch.value || "");
-      if (!q) return [...entries];
-
-      return entries.filter((entry) => {
-        const text = normalizeSearch([
-          entry.product_item_no,
-          entry.brand,
-          entry.brand_detail,
-          entry.event_name,
-          entry.event_model,
-          entry.change_title,
-          entry.before_model,
-          entry.after_model,
-          entry.etc_title,
-          entry.etc_category,
-          entry.related_store,
-          entry.related_target,
-          entry.related_model,
-          entry.note
-        ].join(" "));
-
-        return text.includes(q);
-      });
-    }
-
-    async function searchAndSelectProduct() {
-      const raw = els.itemSearchInput.value.trim();
-      if (!raw) {
-        showToast("아이템번호 또는 모델명을 입력하세요.");
-        return;
-      }
-
-      const q = normalizeSearch(raw);
-      const itemNo = normalizeItemNo(raw);
-
-      let product = state.productMap.get(itemNo);
-
-      if (!product) {
-        product = Array.from(state.productMap.values()).find((p) => {
-          return normalizeSearch(`${p.item_no} ${p.model_name} ${p.brand} ${p.category}`).includes(q);
-        });
-      }
-
-      if (!product) {
-        showToast("제품 DB에서 찾지 못했습니다. 모델입고로 신규 등록하세요.");
-        state.selectedProduct = null;
-        renderSelectedProduct();
-        return;
-      }
-
-      selectProduct(product);
-    }
-
-    window.selectProductByItemNo = function(itemNo, jump) {
+    window.selectProduct = function(itemNo) {
       const product = state.productMap.get(normalizeItemNo(itemNo));
       if (!product) return;
 
-      selectProduct(product);
+      els.itemNo.value = product.item_no;
+      els.brand.value = normalizeBrand(product.brand) || "기타";
+      els.modelName.value = product.model_name || "";
+      els.category.value = product.category || guessCategory(product.model_name);
+      els.basePrice.value = product.base_price ? formatNumber(product.base_price) : "";
+      els.saleBasePrice.value = product.base_price ? formatNumber(product.base_price) : "";
+      els.finalPrice.value = product.base_price ? formatNumber(product.base_price) : "";
 
-      if (jump) {
-        switchPage("new");
-        setActiveType("irc");
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
+      renderSelectedProduct(product);
+      showToast("제품 정보를 불러왔습니다.");
     };
 
-    function selectProduct(product) {
-      state.selectedProduct = product;
-
-      els.itemSearchInput.value = product.item_no;
-      els.brand.value = normalizeBrand(product.brand) || "기타";
-      els.productItemNo.value = product.item_no;
-      els.modelName.value = product.model_name || "";
-      els.basePrice.value = product.base_price ? formatNumber(product.base_price) : "";
-      els.finalPrice.value = product.base_price ? formatNumber(product.base_price) : "";
-      els.finalPrice.dataset.manual = "";
-
-      els.outItemNo.value = product.item_no;
-      els.inModelName.value = product.model_name || "";
-      els.inBasePrice.value = product.base_price ? formatNumber(product.base_price) : "";
-      els.inCategory.value = product.category || guessCategory(product.model_name || "");
-
-      renderSelectedProduct();
-      updateSteps();
-      showToast("제품 정보를 불러왔습니다.");
-    }
-
-    function renderSelectedProduct() {
-      const p = state.selectedProduct;
-
-      if (!p) {
-        els.selectedProductBox.className = "empty-selected";
-        els.selectedProductBox.innerHTML = "제품을 조회하거나 모델입고를 선택해 신규 제품을 입력하세요.";
-        return;
-      }
-
-      els.selectedProductBox.className = "selected-product";
-      els.selectedProductBox.innerHTML = `
-        <div class="thumb">📦</div>
-        <dl>
-          <dt>브랜드</dt><dd>${escapeHtml(p.brand || "-")}</dd>
-          <dt>모델명</dt><dd>${escapeHtml(p.model_name || "-")}</dd>
-          <dt>아이템</dt><dd>${escapeHtml(p.item_no || "-")}</dd>
-          <dt>품목</dt><dd>${escapeHtml(p.category || "-")}</dd>
-        </dl>
-        <div>
-          <div class="hint">기본 가격</div>
-          <strong class="price">${p.base_price ? formatNumber(p.base_price) + "원" : "-"}</strong>
+    function renderSelectedProduct(product) {
+      els.selectedBox.className = "selected";
+      els.selectedBox.innerHTML = `
+        <div class="info">
+          <strong>${escapeHtml(product.item_no)} · ${escapeHtml(product.model_name || "-")}</strong>
+          <span>${escapeHtml(product.brand || "-")} / ${escapeHtml(product.category || "-")} / ${escapeHtml(product.status || "-")}</span>
         </div>
+        <div class="price">${product.base_price ? formatNumber(product.base_price) + "원" : "가격 없음"}</div>
       `;
     }
 
-    function setActiveType(type) {
-      state.activeType = type;
+    function lookupProduct() {
+      const itemNo = normalizeItemNo(els.itemNo.value);
 
-      document.querySelectorAll(".type-card").forEach((btn) => {
+      if (!itemNo) {
+        showToast("아이템번호를 입력하세요.");
+        return;
+      }
+
+      const product = state.productMap.get(itemNo);
+
+      if (!product) {
+        showToast("제품 DB에 없습니다. 입고로 신규 등록하세요.");
+        return;
+      }
+
+      window.selectProduct(itemNo);
+    }
+
+    function lookupProductSilent() {
+      const itemNo = normalizeItemNo(els.itemNo.value);
+      if (itemNo && state.productMap.has(itemNo)) window.selectProduct(itemNo);
+    }
+
+    function setType(type) {
+      state.type = type;
+
+      document.querySelectorAll("[data-type]").forEach((btn) => {
         btn.classList.toggle("active", btn.dataset.type === type);
       });
 
-      document.querySelectorAll(".form-type-fields").forEach((el) => {
-        el.classList.add("hidden");
-      });
+      $("inFields").classList.toggle("hidden", type !== "입고");
+      $("outFields").classList.toggle("hidden", type !== "소진");
+      $("saleFields").classList.toggle("hidden", type !== "할인");
 
-      $("commonFields").classList.toggle("hidden", type === "out");
-
-      if (type === "irc") {
-        $("ircFields").classList.remove("hidden");
-        els.formPanelTitle.textContent = "IRC 등록 정보";
-        els.formPanelHint.textContent = "모델입고 가격 또는 기존 IRC 기본가격을 자동으로 불러옵니다.";
-        els.submitBtn.textContent = "IRC 등록하기";
+      if (type === "입고") {
+        els.panelTitle.textContent = "제품 입고 정보";
+        els.panelHint.textContent = "입고 등록 시 라인업DB에 운영 상품으로 등록됩니다.";
+        els.submitBtn.textContent = "제품 입고 등록";
       }
 
-      if (type === "in") {
-        $("modelInFields").classList.remove("hidden");
-        els.formPanelTitle.textContent = "모델입고 정보";
-        els.formPanelHint.textContent = "품목, 모델명, 가격, 입고일자를 입력하면 라인업DB에 반영됩니다.";
-        els.submitBtn.textContent = "모델입고 등록";
+      if (type === "소진") {
+        els.panelTitle.textContent = "제품 소진 정보";
+        els.panelHint.textContent = "소진 처리 시 라인업DB 상태가 진열소진으로 변경되고 보고서에서 제외됩니다.";
+        els.submitBtn.textContent = "제품 소진 등록";
       }
 
-      if (type === "out") {
-        $("modelOutFields").classList.remove("hidden");
-        els.formPanelTitle.textContent = "모델철수 정보";
-        els.formPanelHint.textContent = "아이템번호와 철수 일자만 입력합니다.";
-        els.submitBtn.textContent = "모델철수 등록";
+      if (type === "할인") {
+        els.panelTitle.textContent = "가격 할인 정보";
+        els.panelHint.textContent = "아이템번호 조회 시 기본 가격을 자동으로 불러옵니다.";
+        els.submitBtn.textContent = "가격 할인 등록";
       }
-
-      if (type === "etc") {
-        $("etcFields").classList.remove("hidden");
-        els.formPanelTitle.textContent = "행사 및 기타 정보";
-        els.formPanelHint.textContent = "일반 운영 이슈를 기록합니다.";
-        els.submitBtn.textContent = "기록 등록";
-      }
-
-      updateSteps();
     }
 
-    function updateSteps() {
-      $("step1").classList.toggle("active", !!state.selectedProduct || state.activeType === "in");
-      $("step2").classList.add("active");
-      $("step3").classList.add("active");
-    }
+    async function submitForm(event) {
+      event.preventDefault();
 
-    async function submitEntry(e) {
-      e.preventDefault();
-
-      const payload = buildPayload();
-      if (!payload) return;
+      const record = buildRecordPayload();
+      if (!record) return;
 
       setLoading(true);
 
       try {
-        const editId = els.editId.value;
+        let productPayload = null;
 
-        let result;
-        if (editId) {
-          result = await supabase
-            .from("ce_plan_items")
-            .update(payload)
-            .eq("id", editId)
-            .select()
-            .single();
-        } else {
-          result = await supabase
-            .from("ce_plan_items")
-            .insert(payload)
-            .select()
-            .single();
-        }
-
-        if (result.error) throw result.error;
-
-        const saved = result.data;
-
-        mergeEntry(saved);
-        rebuildProductCatalog();
-
-        await sendToSheetBridge("upsertLog", saved);
-
-        if (state.activeType === "in") {
-          const productPayload = {
-            item_no: normalizeItemNo(payload.product_item_no),
-            brand: payload.brand,
-            brand_detail: payload.brand_detail || null,
-            model_name: payload.related_model,
-            note: payload.note || null,
+        if (record.log_type === "입고") {
+          productPayload = {
+            item_no: record.item_no,
+            brand: record.brand,
+            category: record.category,
+            model_name: record.model_name,
+            base_price: record.base_price,
+            status: "운영",
+            removed_date: null,
+            remove_reason: null,
+            note: record.note,
             updated_at: new Date().toISOString()
           };
 
-          await supabase
-            .from("product_items")
+          const productRes = await supabase
+            .from("costco_lineup_products")
             .upsert(productPayload, { onConflict: "item_no" });
 
-          await sendToSheetBridge("upsertProduct", productPayload);
+          if (productRes.error) throw productRes.error;
         }
+
+        if (record.log_type === "소진") {
+          const product = state.productMap.get(record.item_no) || {};
+
+          productPayload = {
+            item_no: record.item_no,
+            brand: product.brand || record.brand || "기타",
+            category: product.category || record.category || "기타",
+            model_name: product.model_name || record.model_name || "-",
+            base_price: product.base_price || record.base_price || null,
+            status: "진열소진",
+            removed_date: record.start_date,
+            remove_reason: record.note || "소진",
+            note: product.note || null,
+            updated_at: new Date().toISOString()
+          };
+
+          const productRes = await supabase
+            .from("costco_lineup_products")
+            .upsert(productPayload, { onConflict: "item_no" });
+
+          if (productRes.error) throw productRes.error;
+        }
+
+        let logRes;
+        if (els.editId.value) {
+          logRes = await supabase
+            .from("costco_ops_logs")
+            .update(record)
+            .eq("id", els.editId.value)
+            .select()
+            .single();
+        } else {
+          logRes = await supabase
+            .from("costco_ops_logs")
+            .insert(record)
+            .select()
+            .single();
+        }
+
+        if (logRes.error) throw logRes.error;
+
+        await sendToSheetBridge("saveOperation", {
+          record: logRes.data,
+          product: productPayload
+        });
 
         await loadAll();
         resetForm();
-        showToast(editId ? "수정되었습니다." : "저장되었습니다.");
+        showToast("저장되었습니다.");
       } catch (err) {
         console.error(err);
-        showToast("저장 중 오류가 발생했습니다.");
+        showToast("저장 중 오류가 발생했습니다. Supabase SQL과 Apps Script 배포를 확인하세요.");
       } finally {
         setLoading(false);
       }
     }
 
-    function buildPayload() {
-      const type = state.activeType;
+    function buildRecordPayload() {
+      const type = state.type;
+      const itemNo = normalizeItemNo(els.itemNo.value);
+      const brand = els.brand.value;
+      const model = els.modelName.value.trim();
       const now = new Date().toISOString();
 
-      const brand = els.brand.value;
-      const itemNo = normalizeItemNo(type === "out" ? els.outItemNo.value : els.productItemNo.value);
-      const model = type === "in" ? els.inModelName.value.trim() : els.modelName.value.trim();
-
-      if (type !== "etc" && !itemNo) {
+      if (!itemNo) {
         showToast("아이템번호를 입력하세요.");
         return null;
       }
 
-      if (type === "irc") {
-        const base = toNumber(els.basePrice.value);
-        const final = toNumber(els.finalPrice.value);
-        const start = els.eventStart.value;
-        const end = els.eventEnd.value;
+      if (type === "입고") {
+        const price = toNumber(els.basePrice.value);
+        const date = els.inDate.value || state.today;
 
         if (!model) {
-          showToast("모델명을 입력하거나 제품을 조회하세요.");
-          return null;
-        }
-
-        if (base === null) {
-          showToast("기본 가격이 없습니다. 모델입고에서 가격을 먼저 등록하거나 기본 가격을 입력하세요.");
-          return null;
-        }
-
-        if (final === null) {
-          showToast("최종 가격을 입력하세요.");
-          return null;
-        }
-
-        if (!start || !end) {
-          showToast("IRC 시작일과 종료일을 입력하세요.");
-          return null;
-        }
-
-        return cleanPayload({
-          type: "event",
-          brand,
-          brand_detail: null,
-          product_item_no: itemNo,
-          base_date: start,
-          event_name: els.eventName.value.trim() || "IRC 행사",
-          event_model: model,
-          event_start: start,
-          event_end: end,
-          before_price: base,
-          final_price: final,
-          note: els.ircNote.value.trim() || null,
-          updated_at: now
-        });
-      }
-
-      if (type === "in") {
-        const inModel = els.inModelName.value.trim();
-        const price = toNumber(els.inBasePrice.value);
-        const date = els.inDate.value;
-
-        if (!inModel) {
           showToast("모델명을 입력하세요.");
           return null;
         }
@@ -2087,161 +1184,143 @@
           return null;
         }
 
-        if (!date) {
-          showToast("입고 일자를 입력하세요.");
-          return null;
-        }
-
-        return cleanPayload({
-          type: "etc",
+        return cleanObject({
+          log_type: "입고",
           brand,
-          brand_detail: null,
-          product_item_no: itemNo,
-          base_date: date,
-          etc_title: "모델 입고",
-          etc_category: "모델입고",
-          related_target: els.inCategory.value,
-          related_model: inModel,
-          etc_price: price,
-          etc_start: date,
-          note: els.inNote.value.trim() || null,
+          category: els.category.value || guessCategory(model),
+          item_no: itemNo,
+          model_name: model,
+          event_name: "제품 입고",
+          start_date: date,
+          end_date: null,
+          base_price: price,
+          discount_price: null,
+          final_price: null,
+          status: "입고 완료",
+          note: els.note.value.trim() || null,
           updated_at: now
         });
       }
 
-      if (type === "out") {
-        const date = els.outDate.value;
-
-        if (!date) {
-          showToast("철수 일자를 입력하세요.");
-          return null;
-        }
-
+      if (type === "소진") {
         const product = state.productMap.get(itemNo);
+        const date = els.outDate.value || state.today;
 
-        return cleanPayload({
-          type: "etc",
+        return cleanObject({
+          log_type: "소진",
           brand: product ? product.brand : brand,
-          brand_detail: null,
-          product_item_no: itemNo,
-          base_date: date,
-          etc_title: "모델 철수",
-          etc_category: "모델철수",
-          related_model: product ? product.model_name : null,
-          etc_start: date,
-          note: els.outNote.value.trim() || null,
+          category: product ? product.category : els.category.value,
+          item_no: itemNo,
+          model_name: product ? product.model_name : model,
+          event_name: "제품 소진",
+          start_date: date,
+          end_date: null,
+          base_price: product ? product.base_price : toNumber(els.basePrice.value),
+          discount_price: null,
+          final_price: null,
+          status: "소진 완료",
+          note: els.note.value.trim() || null,
           updated_at: now
         });
       }
 
-      if (type === "etc") {
-        const start = els.etcStart.value || state.today;
+      if (type === "할인") {
+        const base = toNumber(els.saleBasePrice.value);
+        const discount = toNumber(els.discountPrice.value);
+        const final = toNumber(els.finalPrice.value);
 
-        if (!els.etcTitle.value.trim() && !els.etcNote.value.trim()) {
-          showToast("제목 또는 상세 내용을 입력하세요.");
+        if (!model) {
+          showToast("모델명을 입력하거나 제품 정보를 불러오세요.");
           return null;
         }
 
-        return cleanPayload({
-          type: "etc",
+        if (base === null) {
+          showToast("기본 가격을 입력하세요.");
+          return null;
+        }
+
+        if (final === null) {
+          showToast("최종 가격을 입력하세요.");
+          return null;
+        }
+
+        if (!els.startDate.value || !els.endDate.value) {
+          showToast("할인 시작일과 종료일을 입력하세요.");
+          return null;
+        }
+
+        return cleanObject({
+          log_type: "할인",
           brand,
-          brand_detail: null,
-          product_item_no: itemNo || null,
-          base_date: start,
-          etc_title: els.etcTitle.value.trim() || els.etcCategory.value,
-          etc_category: els.etcCategory.value,
-          related_store: els.relatedStore.value.trim() || null,
-          etc_start: start,
-          etc_end: els.etcEnd.value || null,
-          related_model: model || null,
-          note: els.etcNote.value.trim() || null,
+          category: els.category.value || guessCategory(model),
+          item_no: itemNo,
+          model_name: model,
+          event_name: els.eventName.value.trim() || "할인 행사",
+          start_date: els.startDate.value,
+          end_date: els.endDate.value,
+          base_price: base,
+          discount_price: discount !== null ? discount : Math.max(base - final, 0),
+          final_price: final,
+          status: "판매 운영",
+          note: els.note.value.trim() || null,
           updated_at: now
         });
       }
     }
 
-    function mergeEntry(entry) {
-      const idx = state.entries.findIndex((item) => item.id === entry.id);
-      if (idx >= 0) state.entries[idx] = entry;
-      else state.entries.unshift(entry);
-      renderAll();
-    }
-
-    window.editEntry = function(id) {
-      const entry = state.entries.find((item) => item.id === id);
-      if (!entry) return;
+    window.editRecord = function(id) {
+      const record = state.records.find(row => row.id === id);
+      if (!record) return;
 
       resetForm(false);
+      els.editId.value = record.id;
+      setType(record.log_type);
 
-      state.editEntry = entry;
-      els.editId.value = entry.id;
+      els.brand.value = normalizeBrand(record.brand) || "기타";
+      els.itemNo.value = record.item_no || "";
+      els.modelName.value = record.model_name || "";
+      els.category.value = record.category || guessCategory(record.model_name);
+      els.note.value = record.note || "";
 
-      const itemNo = normalizeItemNo(entry.product_item_no);
-      const product = itemNo ? state.productMap.get(itemNo) : null;
-
-      if (product) selectProduct(product);
-
-      if (isIrc(entry.type)) {
-        setActiveType("irc");
-        els.brand.value = normalizeBrand(entry.brand) || "기타";
-        els.productItemNo.value = itemNo;
-        els.modelName.value = entry.event_model || "";
-        els.eventName.value = entry.event_name || "";
-        els.basePrice.value = formatNumber(entry.before_price);
-        els.finalPrice.value = formatNumber(entry.final_price);
-        els.discountPrice.value = formatNumber((toNumber(entry.before_price) || 0) - (toNumber(entry.final_price) || 0));
-        els.eventStart.value = normalizeDate(entry.event_start);
-        els.eventEnd.value = normalizeDate(entry.event_end);
-        els.ircNote.value = entry.note || "";
-      } else if (isModelIn(entry)) {
-        setActiveType("in");
-        els.brand.value = normalizeBrand(entry.brand) || "기타";
-        els.productItemNo.value = itemNo;
-        els.inCategory.value = entry.related_target || guessCategory(entry.related_model || "");
-        els.inModelName.value = entry.related_model || entry.after_model || "";
-        els.inBasePrice.value = formatNumber(entry.etc_price ?? entry.sale_price);
-        els.inDate.value = normalizeDate(entry.etc_start || entry.apply_date || entry.base_date);
-        els.inNote.value = entry.note || "";
-      } else if (isModelOut(entry)) {
-        setActiveType("out");
-        els.outItemNo.value = itemNo;
-        els.outDate.value = normalizeDate(entry.etc_start || entry.base_date);
-        els.outNote.value = entry.note || "";
-      } else {
-        setActiveType("etc");
-        els.brand.value = normalizeBrand(entry.brand) || "기타";
-        els.productItemNo.value = itemNo;
-        els.etcCategory.value = entry.etc_category || "기타";
-        els.etcTitle.value = entry.etc_title || "";
-        els.relatedStore.value = entry.related_store || "";
-        els.etcStart.value = normalizeDate(entry.etc_start || entry.base_date);
-        els.etcEnd.value = normalizeDate(entry.etc_end);
-        els.etcNote.value = entry.note || "";
+      if (record.log_type === "입고") {
+        els.basePrice.value = formatNumber(record.base_price);
+        els.inDate.value = normalizeDate(record.start_date);
       }
 
-      switchPage("new");
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      if (record.log_type === "소진") {
+        els.outDate.value = normalizeDate(record.start_date);
+      }
+
+      if (record.log_type === "할인") {
+        els.eventName.value = record.event_name || "";
+        els.saleBasePrice.value = formatNumber(record.base_price);
+        els.discountPrice.value = formatNumber(record.discount_price);
+        els.finalPrice.value = formatNumber(record.final_price);
+        els.startDate.value = normalizeDate(record.start_date);
+        els.endDate.value = normalizeDate(record.end_date);
+      }
+
+      scrollToSection("register");
       showToast("수정할 기록을 불러왔습니다.");
     };
 
-    window.deleteEntry = async function(id) {
-      if (!confirm("이 기록을 삭제할까요? 기존 기록에서 삭제되고 구글시트에도 반영됩니다.")) return;
+    window.deleteRecord = async function(id) {
+      if (!confirm("이 운영기록을 삭제할까요? 라인업DB 상태는 자동 복구하지 않습니다.")) return;
 
       setLoading(true);
 
       try {
         const { error } = await supabase
-          .from("ce_plan_items")
+          .from("costco_ops_logs")
           .delete()
           .eq("id", id);
 
         if (error) throw error;
 
-        state.entries = state.entries.filter((entry) => entry.id !== id);
-        renderAll();
+        await sendToSheetBridge("deleteOperation", { id });
+        await loadAll();
 
-        await sendToSheetBridge("deleteLog", { id });
-        showToast("삭제되었습니다.");
+        showToast("운영기록을 삭제했습니다.");
       } catch (err) {
         console.error(err);
         showToast("삭제 중 오류가 발생했습니다.");
@@ -2267,211 +1346,267 @@
         return true;
       } catch (err) {
         console.error("Sheet bridge error", err);
-        showToast("웹앱 저장은 완료됐지만 구글시트 반영 요청이 실패했습니다.");
+        showToast("웹앱 저장은 됐지만 구글시트 반영 요청이 실패했습니다.");
         return false;
       }
     }
 
-    function resetForm(clearSelected = true) {
-      els.entryForm.reset();
-      els.editId.value = "";
-      state.editEntry = null;
+    function parseQuickText() {
+      const text = els.quickText.value.trim();
 
-      if (clearSelected) {
-        state.selectedProduct = null;
-        renderSelectedProduct();
+      if (!text) {
+        showToast("정리할 내용을 입력하세요.");
+        return;
       }
 
+      const brand = /삼성|SAMSUNG/i.test(text) ? "삼성" : (/LG|엘지/i.test(text) ? "LG" : "기타");
+      const itemNo = (text.match(/\b\d{6}\b/) || [""])[0];
+      const prices = [...text.matchAll(/(\d{1,3}(?:,\d{3})+|\d{5,})\s*원?/g)]
+        .map(match => toNumber(match[1]))
+        .filter(value => value !== null);
+
+      const modelTokens = [...text.matchAll(/[A-Za-z0-9][A-Za-z0-9+.\-()]{3,}/g)]
+        .map(match => match[0])
+        .filter(token => normalizeItemNo(token) !== itemNo)
+        .filter(token => !/^\d+$/.test(token));
+
+      const model = modelTokens[0] || "";
+      const category = detectCategory(text, model);
+      const dates = parseKoreanDates(text);
+
+      els.brand.value = brand;
+      els.itemNo.value = itemNo;
+      els.modelName.value = model;
+      els.category.value = category;
+
+      if (/할인|IRC|브랜드위크|행사/i.test(text) && prices.length >= 2) {
+        setType("할인");
+        els.eventName.value = /브랜드위크/i.test(text) ? "브랜드위크" : (/IRC/i.test(text) ? "IRC" : "할인 행사");
+        els.saleBasePrice.value = formatNumber(prices[0]);
+        els.discountPrice.value = formatNumber(prices[1]);
+        els.finalPrice.value = formatNumber(prices[2] ?? Math.max(prices[0] - prices[1], 0));
+        els.startDate.value = dates.start || state.today;
+        els.endDate.value = dates.end || dates.start || state.today;
+      } else if (/소진|철수|중단/i.test(text)) {
+        setType("소진");
+        els.outDate.value = dates.start || state.today;
+      } else {
+        setType("입고");
+        els.basePrice.value = formatNumber(prices[0]);
+        els.inDate.value = dates.start || state.today;
+      }
+
+      els.note.value = text;
+      showToast("내용을 정리했습니다. 확인 후 등록하세요.");
+    }
+
+    function resetForm(clearQuickText = true) {
+      els.entryForm.reset();
+      els.editId.value = "";
+
+      if (clearQuickText) els.quickText.value = "";
+
       setDefaultDates();
-      setActiveType("irc");
-      els.submitBtn.textContent = "등록하기";
+      setType("입고");
+
+      els.selectedBox.className = "selected empty";
+      els.selectedBox.textContent = "제품 조회 시 브랜드 · 품목 · 모델명 · 기본 가격을 불러옵니다.";
     }
 
     function setDefaultDates() {
-      const today = toDateInputValue(new Date());
-      state.today = today;
+      state.today = dateInput(new Date());
 
-      ["eventStart", "eventEnd", "inDate", "outDate", "etcStart"].forEach((id) => {
+      ["inDate", "outDate", "startDate", "endDate"].forEach((id) => {
         const el = $(id);
-        if (el && !el.value) el.value = today;
+        if (el && !el.value) el.value = state.today;
       });
     }
 
-    function calcFinalPriceFromDiscount() {
-      const base = toNumber(els.basePrice.value);
+    function calculateFinalPrice() {
+      const base = toNumber(els.saleBasePrice.value);
       const discount = toNumber(els.discountPrice.value);
 
-      if (base === null || discount === null) return;
-
-      els.finalPrice.value = formatNumber(Math.max(base - discount, 0));
-      els.finalPrice.dataset.manual = "";
+      if (base !== null && discount !== null) {
+        els.finalPrice.value = formatNumber(Math.max(base - discount, 0));
+      }
     }
 
-    function typePill(entry) {
-      if (isIrc(entry.type)) return `<span class="pill irc">IRC</span>`;
-      if (isModelIn(entry)) return `<span class="pill in">모델입고</span>`;
-      if (isModelOut(entry)) return `<span class="pill out">모델철수</span>`;
-      return `<span class="pill etc">행사 및 기타</span>`;
+    function typePill(type) {
+      if (type === "입고") return `<span class="pill in">입고</span>`;
+      if (type === "소진") return `<span class="pill out">소진</span>`;
+      if (type === "할인") return `<span class="pill sale">할인</span>`;
+      return `<span class="pill etc">기타</span>`;
     }
 
-    function priceSummary(entry) {
-      if (isIrc(entry.type)) {
-        return `
-          <strong>${formatNumber(entry.final_price)}원</strong>
-          <div class="hint">기본 ${formatNumber(entry.before_price)}원</div>
-        `;
+    function priceSummary(row) {
+      if (row.log_type === "할인") {
+        return `기본 ${formatNumber(row.base_price)}원<br><b style="color:#dc2626">할인 ${formatNumber(row.discount_price)}원</b><br>최종 ${formatNumber(row.final_price)}원`;
       }
 
-      if (isModelIn(entry)) {
-        return `<strong>${formatNumber(entry.etc_price ?? entry.sale_price)}원</strong>`;
-      }
-
-      if (entry.etc_price) {
-        return `<strong>${formatNumber(entry.etc_price)}원</strong>`;
+      if (row.log_type === "입고") {
+        return `<b>${formatNumber(row.base_price)}원</b>`;
       }
 
       return "-";
     }
 
-    function periodSummary(entry) {
-      if (isIrc(entry.type)) {
-        return `${formatDate(entry.event_start)} ~ ${formatDate(entry.event_end)}`;
+    function periodSummary(row) {
+      if (row.log_type === "할인") {
+        return `${formatDate(row.start_date)}~${formatDate(row.end_date)}`;
       }
 
-      if (isModelIn(entry)) {
-        return formatDate(entry.etc_start || entry.apply_date || entry.base_date);
+      return formatDate(row.start_date);
+    }
+
+    function detectCategory(text, model) {
+      const categories = ["김치냉장고", "식기세척기", "세탁·건조", "의류케어", "냉장고", "에어컨", "모니터", "세탁기", "건조기", "청소기", "인덕션", "TV"];
+
+      for (const category of categories) {
+        if (text.includes(category)) return category;
       }
 
-      if (isModelOut(entry)) {
-        return formatDate(entry.etc_start || entry.base_date);
+      return guessCategory(model);
+    }
+
+    function parseKoreanDates(text) {
+      const year = new Date().getFullYear();
+
+      let match = text.match(/(\d{1,2})월\s*(\d{1,2})일\s*[~\-부터까지]*\s*(?:(\d{1,2})월\s*)?(\d{1,2})일/);
+
+      if (match) {
+        const startMonth = match[1];
+        const startDay = match[2];
+        const endMonth = match[3] || startMonth;
+        const endDay = match[4];
+
+        return {
+          start: `${year}-${pad(startMonth)}-${pad(startDay)}`,
+          end: `${year}-${pad(endMonth)}-${pad(endDay)}`
+        };
       }
 
-      if (entry.etc_start || entry.etc_end) {
-        return `${formatDate(entry.etc_start)}${entry.etc_end ? " ~ " + formatDate(entry.etc_end) : ""}`;
+      match = text.match(/(\d{1,2})월\s*(\d{1,2})일/);
+
+      if (match) {
+        return {
+          start: `${year}-${pad(match[1])}-${pad(match[2])}`,
+          end: ""
+        };
       }
 
-      return formatDate(entry.base_date);
+      return { start: "", end: "" };
     }
 
-    function getEntryModel(entry) {
-      return entry.event_model || entry.related_model || entry.after_model || entry.before_model || entry.related_target || "";
-    }
+    function guessCategory(model) {
+      const value = String(model || "").toUpperCase();
 
-    function isIrc(type) {
-      const t = String(type || "").trim().toLowerCase();
-      return ["event", "irc", "행사"].includes(t);
-    }
-
-    function isModelIn(entry) {
-      const t = String(entry.type || "").trim().toLowerCase();
-      const c = normalizeCategory(entry.etc_category);
-      return t === "model_change" || (
-        ["etc", "기타", "행사및기타", "행사 및 기타"].includes(t) &&
-        ["모델입고", "모델변경", "제품입고", "입고"].includes(c)
-      );
-    }
-
-    function isModelOut(entry) {
-      const t = String(entry.type || "").trim().toLowerCase();
-      const c = normalizeCategory(entry.etc_category);
-      const title = String(entry.etc_title || "").replace(/\s+/g, "");
-
-      return ["etc", "기타", "행사및기타", "행사 및 기타"].includes(t) &&
-        (
-          ["모델철수", "진열삭제", "진열소진", "소진", "제품소진", "중단"].includes(c) ||
-          /모델.*철수|진열.*(삭제|소진)|소진/.test(title)
-        );
-    }
-
-    function normalizeCategory(value) {
-      return String(value || "").replace(/[\s\u00A0\u200B-\u200D\uFEFF]/g, "").trim();
-    }
-
-    function normalizeBrand(value) {
-      const brand = String(value || "").trim().toUpperCase().replace(/\s+/g, "");
-      if (["삼성", "삼성전자", "SAMSUNG"].includes(brand)) return "삼성";
-      if (["LG", "LG전자", "엘지", "엘지전자", "LGE"].includes(brand)) return "LG";
-      if (["기타"].includes(brand)) return "기타";
-      return value || "";
-    }
-
-    function displayBrand(brand, detail) {
-      const normalized = normalizeBrand(brand);
-      if (normalized === "기타" && detail) return detail;
-      return normalized || brand || "-";
-    }
-
-    function normalizeItemNo(value) {
-      return String(value || "").trim().replace(/\.0+$/, "").replace(/[^0-9A-Za-z]/g, "").toUpperCase();
-    }
-
-    function normalizeSearch(value) {
-      return String(value || "").trim().replace(/\s+/g, "").toUpperCase();
-    }
-
-    function normalizeDate(value) {
-      if (!value) return "";
-      if (typeof value === "string") {
-        const m = value.match(/^(\d{4})[-./](\d{1,2})[-./](\d{1,2})/);
-        if (m) return `${m[1]}-${String(m[2]).padStart(2, "0")}-${String(m[3]).padStart(2, "0")}`;
-      }
-
-      const d = new Date(value);
-      if (Number.isNaN(d.getTime())) return "";
-      return toDateInputValue(d);
-    }
-
-    function toDateInputValue(date) {
-      const y = date.getFullYear();
-      const m = String(date.getMonth() + 1).padStart(2, "0");
-      const d = String(date.getDate()).padStart(2, "0");
-      return `${y}-${m}-${d}`;
-    }
-
-    function formatDate(value) {
-      const d = normalizeDate(value);
-      if (!d) return "-";
-      return d.replaceAll("-", ".");
-    }
-
-    function toNumber(value) {
-      if (value === null || value === undefined || value === "") return null;
-      const n = Number(String(value).replace(/[^0-9.-]/g, ""));
-      return Number.isFinite(n) ? n : null;
-    }
-
-    function formatNumber(value) {
-      const n = toNumber(value);
-      if (n === null) return "";
-      return n.toLocaleString("ko-KR");
-    }
-
-    function guessCategory(modelName) {
-      const model = String(modelName || "").toUpperCase();
-
-      if (model.startsWith("KQ") || model.startsWith("KU") || model.startsWith("OLED") || model.startsWith("QNED") || model.includes("NA1C")) return "TV";
-      if (model.startsWith("LS") || model.includes("LX")) return "모니터";
-      if (model.startsWith("RM") || model.startsWith("RF") || model.startsWith("RS") || model.startsWith("RT") || model.startsWith("S8") || model.startsWith("M8") || model.startsWith("Z")) return "냉장고";
-      if (model.startsWith("RP") || model.startsWith("RQ")) return "김치냉장고";
-      if (model.startsWith("WF") || model.startsWith("DV") || model.startsWith("FG") || model.startsWith("RG") || model.startsWith("FX") || model.startsWith("RD")) return "세탁·건조";
-      if (model.startsWith("AF") || model.startsWith("AR") || model.startsWith("FQ") || model.startsWith("FW") || model.startsWith("SQ")) return "에어컨";
-      if (model.startsWith("AS")) return "청소기";
-      if (model.startsWith("DU")) return "식기세척기";
-      if (model.startsWith("BE") || model.startsWith("NZ")) return "인덕션";
+      if (value.startsWith("KQ") || value.startsWith("KU") || value.startsWith("OLED") || value.startsWith("QNED") || value.includes("NA1C")) return "TV";
+      if (value.startsWith("LS") || value.includes("LX")) return "모니터";
+      if (value.startsWith("RM") || value.startsWith("RF") || value.startsWith("RS") || value.startsWith("RT") || value.startsWith("S8") || value.startsWith("M8") || value.startsWith("Z")) return "냉장고";
+      if (value.startsWith("RP") || value.startsWith("RQ")) return "김치냉장고";
+      if (value.startsWith("WF") || value.startsWith("DV") || value.startsWith("FG") || value.startsWith("RG") || value.startsWith("FX") || value.startsWith("RD")) return "세탁·건조";
+      if (value.startsWith("AF") || value.startsWith("AR") || value.startsWith("FQ") || value.startsWith("FW") || value.startsWith("SQ")) return "에어컨";
+      if (value.startsWith("AS")) return "청소기";
+      if (value.startsWith("DU")) return "식기세척기";
+      if (value.startsWith("BE") || value.startsWith("NZ")) return "인덕션";
 
       return "기타";
     }
 
-    function emptyRow(cols, text) {
-      return `<tr><td colspan="${cols}" style="text-align:center;color:#64748b;font-weight:900;padding:30px">${text}</td></tr>`;
+    function categoryOrder(category) {
+      const order = {
+        "TV": 1,
+        "모니터": 2,
+        "냉장고": 3,
+        "김치냉장고": 4,
+        "세탁기": 5,
+        "건조기": 6,
+        "세탁·건조": 7,
+        "의류케어": 8,
+        "에어컨": 9,
+        "청소기": 10,
+        "식기세척기": 11,
+        "인덕션": 12,
+        "소형가전": 13,
+        "기타": 99
+      };
+
+      return order[category] || 90;
     }
 
-    function cleanPayload(payload) {
-      Object.keys(payload).forEach((key) => {
-        if (payload[key] === "") payload[key] = null;
+    function normalizeBrand(value) {
+      const raw = compact(value).toUpperCase();
+
+      if (["삼성", "삼성전자", "SAMSUNG"].includes(raw)) return "삼성";
+      if (["LG", "LG전자", "엘지", "엘지전자", "LGE"].includes(raw)) return "LG";
+      if (["기타"].includes(raw)) return "기타";
+
+      return value || "";
+    }
+
+    function normalizeItemNo(value) {
+      return String(value || "")
+        .trim()
+        .replace(/\.0+$/, "")
+        .replace(/[^0-9A-Za-z]/g, "")
+        .toUpperCase();
+    }
+
+    function searchText(value) {
+      return compact(value).toUpperCase();
+    }
+
+    function compact(value) {
+      return String(value || "")
+        .replace(/[\s\u00A0\u200B-\u200D\uFEFF]/g, "")
+        .trim();
+    }
+
+    function normalizeDate(value) {
+      if (!value) return "";
+
+      const match = String(value).match(/^(\d{4})[-.\/](\d{1,2})[-.\/](\d{1,2})/);
+
+      if (match) {
+        return `${match[1]}-${pad(match[2])}-${pad(match[3])}`;
+      }
+
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? "" : dateInput(date);
+    }
+
+    function formatDate(value) {
+      const date = normalizeDate(value);
+      return date ? date.replaceAll("-", ".") : "-";
+    }
+
+    function dateInput(date) {
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    }
+
+    function pad(value) {
+      return String(value).padStart(2, "0");
+    }
+
+    function toNumber(value) {
+      if (value === null || value === undefined || value === "") return null;
+
+      const number = Number(String(value).replace(/[^0-9.-]/g, ""));
+
+      return Number.isFinite(number) ? number : null;
+    }
+
+    function formatNumber(value) {
+      const number = toNumber(value);
+      return number === null ? "" : number.toLocaleString("ko-KR");
+    }
+
+    function cleanObject(obj) {
+      Object.keys(obj).forEach(key => {
+        if (obj[key] === "" || obj[key] === undefined) obj[key] = null;
       });
 
-      return payload;
+      return obj;
     }
 
     function escapeHtml(value) {
@@ -2481,6 +1616,10 @@
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replaceAll("`", "&#096;");
     }
 
     function setLoading(show) {
