@@ -88,6 +88,72 @@
     window.editRecord=id=>{const r=state.records.find(x=>x.id===id);if(!r)return;resetForm(false);els.editId.value=r.id;setType(r.record_type);if(r.record_type==='모델입고'){els.inBrand.value=brand(r.brand)||'기타';els.inCategory.value=r.category||guessCategory(r.model_name);els.inDate.value=date(r.record_date);els.inItemNo.value=r.item_no||'';els.inModelName.value=r.model_name||'';els.inSalePrice.value=fmt(r.sale_price)}if(r.record_type==='모델철수'){els.outItemNo.value=r.item_no||'';els.outDate.value=date(r.record_date);if(state.productMap.has(normItem(r.item_no)))lookupOut()}if(r.record_type==='행사기간'){els.eventBrand.value=brand(r.brand)||'기타';els.eventType.value=r.event_type||'IRC';els.eventStart.value=date(r.event_start);els.eventEnd.value=date(r.event_end);els.eventItemNo.value=r.item_no||'';els.eventModelName.value=r.model_name||'';els.eventSalePrice.value=fmt(r.sale_price);els.discountPrice.value=fmt(r.discount_price);els.finalPrice.value=fmt(r.final_price)}if(r.record_type==='인력변경'){els.personCompany.value=r.company_type||'거래선';els.personName.value=r.person_name||'';els.personAction.value=r.personnel_action||'전입';els.personDate.value=date(r.record_date);els.personPhone.value=r.phone||'';els.personCareer.value=r.career||''}els.note.value=r.note||'';switchPage('register');preview();toast('수정할 기록을 불러왔습니다.');};
     window.deleteRecord=async id=>{if(!confirm('이 운영기록을 삭제할까요?'))return;setLoading(true);try{const r=await sb.from('costco_records').delete().eq('id',id);if(r.error)throw r.error;await bridge('deleteRecord',{id});await loadAll();toast('운영기록을 삭제했습니다.');}catch(e){console.error(e);toast('삭제 중 오류가 발생했습니다.');}finally{setLoading(false)}};
     async function bridge(action,data){try{await fetch(SHEET_BRIDGE_URL,{method:'POST',mode:'no-cors',body:JSON.stringify({secret:SHEET_BRIDGE_SECRET,action,data})});return true}catch(e){console.error(e);toast('웹앱 저장은 됐지만 구글시트 반영 요청이 실패했습니다.');return false}}
+
+    function resetAfterSubmitKeepSelections() {
+      const keep = {
+        type: state.type,
+
+        inBrand: els.inBrand ? els.inBrand.value : "",
+        inCategory: els.inCategory ? els.inCategory.value : "",
+        inDate: els.inDate ? els.inDate.value : "",
+
+        outDate: els.outDate ? els.outDate.value : "",
+
+        eventBrand: els.eventBrand ? els.eventBrand.value : "",
+        eventType: els.eventType ? els.eventType.value : "",
+        eventStart: els.eventStart ? els.eventStart.value : "",
+        eventEnd: els.eventEnd ? els.eventEnd.value : "",
+
+        personCompany: els.personCompany ? els.personCompany.value : "",
+        personAction: els.personAction ? els.personAction.value : "",
+        personDate: els.personDate ? els.personDate.value : ""
+      };
+
+      els.editId.value = "";
+
+      // 매번 달라지는 수기 입력값만 초기화
+      if (els.inItemNo) els.inItemNo.value = "";
+      if (els.inModelName) els.inModelName.value = "";
+      if (els.inSalePrice) els.inSalePrice.value = "";
+
+      if (els.outItemNo) els.outItemNo.value = "";
+      if (els.outProductBox) {
+        els.outProductBox.className = "selected empty";
+        els.outProductBox.textContent = "아이템번호 입력 후 기존 내역을 불러오세요.";
+      }
+
+      if (els.eventItemNo) els.eventItemNo.value = "";
+      if (els.eventModelName) els.eventModelName.value = "";
+      if (els.eventSalePrice) els.eventSalePrice.value = "";
+      if (els.discountPrice) els.discountPrice.value = "";
+      if (els.finalPrice) els.finalPrice.value = "";
+
+      if (els.personName) els.personName.value = "";
+      if (els.personPhone) els.personPhone.value = "";
+      if (els.personCareer) els.personCareer.value = "";
+
+      if (els.note) els.note.value = "";
+
+      // 사용자가 바꾼 선택값과 날짜는 유지
+      if (els.inBrand && keep.inBrand) els.inBrand.value = keep.inBrand;
+      if (els.inCategory && keep.inCategory) els.inCategory.value = keep.inCategory;
+      if (els.inDate && keep.inDate) els.inDate.value = keep.inDate;
+
+      if (els.outDate && keep.outDate) els.outDate.value = keep.outDate;
+
+      if (els.eventBrand && keep.eventBrand) els.eventBrand.value = keep.eventBrand;
+      if (els.eventType && keep.eventType) els.eventType.value = keep.eventType;
+      if (els.eventStart && keep.eventStart) els.eventStart.value = keep.eventStart;
+      if (els.eventEnd && keep.eventEnd) els.eventEnd.value = keep.eventEnd;
+
+      if (els.personCompany && keep.personCompany) els.personCompany.value = keep.personCompany;
+      if (els.personAction && keep.personAction) els.personAction.value = keep.personAction;
+      if (els.personDate && keep.personDate) els.personDate.value = keep.personDate;
+
+      setType(keep.type);
+      updateSummaryPreview();
+    }
+
     function resetForm(clear=true){els.recordForm.reset();if(clear)els.editId.value='';els.outProductBox.className='selected empty';els.outProductBox.textContent='아이템번호 입력 후 기존 내역을 불러오세요.';setDates();setType('모델입고');preview()}
     function setDates(){state.today=dateInput(new Date());['inDate','outDate','eventStart','eventEnd','personDate'].forEach(id=>{const el=$(id);if(el&&!el.value)el.value=state.today})}
     function preview(){els.summaryPreview.textContent=makeSummary(currentPreview())||'운영기록 요약이 자동으로 생성됩니다.'}
