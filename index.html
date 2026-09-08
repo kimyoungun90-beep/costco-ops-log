@@ -77,9 +77,40 @@
     function uuid(){return window.crypto&&window.crypto.randomUUID?window.crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c==='x'?r:(r&3|8);return v.toString(16);});}
     function queue(){try{return JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]')}catch(e){return[]}}
     function saveQueue(q){localStorage.setItem(QUEUE_KEY,JSON.stringify(q))}
-    function enqueueJob(job){const q=queue();q.push(job);saveQueue(q)}
+    function enqueueJob(job){const q=queue();job.queue_id=job.queue_id||uuid();q.push(job);saveQueue(q)}
     function optimisticApply(built){const r={...built.record};state.records=state.records.filter(x=>x.id!==r.id);state.records.unshift(r);if(built.product){const p={...built.product};state.products=state.products.filter(x=>normItem(x.item_no)!==normItem(p.item_no));state.products.unshift(p);state.productMap.set(normItem(p.item_no),p);}renderAll();}
-    async function processQueue(){if(state.saving)return;let q=queue();if(!q.length)return;state.saving=true;try{while(q.length){const job=q[0];if(job.kind==='saveRecord'){const built=job.built;if(built.product){const pr=await sb.from('costco_products').upsert(built.product,{onConflict:'item_no'});if(pr.error)throw pr.error;}const rr=await sb.from('costco_records').upsert(built.record,{onConflict:'id'}).select().single();if(rr.error)throw rr.error;await bridge('saveRecord',{record:rr.data,product:built.product});}q.shift();saveQueue(q);}await quietRefresh();toast('배경 저장 완료');}catch(e){console.error(e);toast('배경 저장 대기 중입니다. 인터넷/배포 확인 후 다시 자동 재시도됩니다.');}finally{state.saving=false;}}
+    async function processQueue(){
+      if(state.saving)return;
+      if(!queue().length)return;
+      state.saving=true;
+      let completed=0;
+      try{
+        while(true){
+          const q=queue();
+          if(!q.length)break;
+          const job=q[0];
+          if(job.kind==='saveRecord'){
+            const built=job.built;
+            if(built.product){const pr=await sb.from('costco_products').upsert(built.product,{onConflict:'item_no'});if(pr.error)throw pr.error;}
+            const rr=await sb.from('costco_records').upsert(built.record,{onConflict:'id'}).select().single();
+            if(rr.error)throw rr.error;
+            await bridge('saveRecord',{record:rr.data,product:built.product});
+          }
+          // 저장 중 새 등록이 추가됐을 수 있으므로 항상 최신 localStorage 대기열을 다시 읽는다.
+          const latest=queue();
+          const idx=job.queue_id?latest.findIndex(x=>x.queue_id===job.queue_id):0;
+          if(idx>=0)latest.splice(idx,1);
+          saveQueue(latest);
+          completed++;
+        }
+        if(completed){await quietRefresh();toast(completed>1?`배경 저장 완료 · ${completed}건`:'배경 저장 완료');}
+      }catch(e){
+        console.error(e);
+        toast('배경 저장 대기 중입니다. 인터넷/배포 확인 후 다시 자동 재시도됩니다.');
+      }finally{
+        state.saving=false;
+      }
+    }
     async function quietRefresh(){try{const [p,r]=await Promise.all([sb.from('costco_products').select('*').order('updated_at',{ascending:false}),sb.from('costco_records').select('*').order('record_date',{ascending:false}).order('created_at',{ascending:false})]);if(p.error||r.error)return;state.products=p.data||[];state.records=r.data||[];state.productMap=new Map();state.products.forEach(x=>{if(x.item_no)state.productMap.set(normItem(x.item_no),x)});renderAll();}catch(e){console.error(e)}}
     function buildPayload(){const t=state.type,now=new Date().toISOString();if(t==='모델입고'){const item=normItem(els.inItemNo.value),model=els.inModelName.value.trim(),price=num(els.inSalePrice.value),d=els.inDate.value||state.today;if(!/^\d{6}$/.test(item))return toast('아이템번호는 숫자 6자리입니다.'),null;if(!model)return toast('모델명을 입력하세요.'),null;if(price===null)return toast('판매가격을 입력하세요.'),null;const r=clean({record_type:'모델입고',record_date:d,brand:els.inBrand.value,category:els.inCategory.value,item_no:item,model_name:model,sale_price:price,status:'입고 완료',summary:makeSummary({record_type:'모델입고',record_date:d,brand:els.inBrand.value,category:els.inCategory.value,item_no:item,model_name:model,sale_price:price}),note:els.note.value.trim()||null,updated_at:now});const p=clean({item_no:item,brand:els.inBrand.value,category:els.inCategory.value,model_name:model,sale_price:price,status:'운영',in_date:d,out_date:null,out_reason:null,note:els.note.value.trim()||null,updated_at:now});return{record:r,product:p}}
       if(t==='모델철수'){const item=normItem(els.outItemNo.value),p=state.productMap.get(item),d=els.outDate.value||state.today;if(!/^\d{6}$/.test(item))return toast('아이템번호는 숫자 6자리입니다.'),null;if(!p)return toast('기존 제품 내역을 먼저 불러오세요.'),null;const r=clean({record_type:'모델철수',record_date:d,brand:p.brand,category:p.category,item_no:item,model_name:p.model_name,sale_price:p.sale_price,status:'철수 완료',summary:makeSummary({record_type:'모델철수',record_date:d,brand:p.brand,category:p.category,item_no:item,model_name:p.model_name}),note:els.note.value.trim()||null,updated_at:now});const pp=clean({item_no:item,brand:p.brand,category:p.category,model_name:p.model_name,sale_price:p.sale_price,status:'진열소진',in_date:p.in_date||null,out_date:d,out_reason:els.note.value.trim()||'모델철수',note:p.note||null,updated_at:now});return{record:r,product:pp}}
